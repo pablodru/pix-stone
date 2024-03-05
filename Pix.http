@@ -1,0 +1,6 @@
+@Pix_HostAddress = http://localhost:5109
+
+GET {{Pix_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

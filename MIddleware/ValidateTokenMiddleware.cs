@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Http;
-using System;
 using System.Threading.Tasks;
 using Pix.Exceptions;
 using Pix.Repositories;
@@ -10,37 +9,31 @@ namespace Pix.Middlewares
     public class TokenValidationMiddleware
     {
         private readonly RequestDelegate _next;
-        private readonly BankRepository _bankRepository;
-        private Bank _validatedBank;
 
-        public TokenValidationMiddleware(RequestDelegate next, BankRepository bankRepository)
+        public TokenValidationMiddleware(RequestDelegate next)
         {
             _next = next;
-            _bankRepository = bankRepository;
         }
 
-        public async Task InvokeAsync(HttpContext context)
+        public async Task InvokeAsync(HttpContext context, BankRepository bankRepository)
         {
-            string authorizationHeader = context.Request.Headers["Authorization"];
+            // Obter o token de autorização do cabeçalho da solicitação
+            var authorizationHeader = context.Request.Headers["Authorization"];
 
             if (string.IsNullOrEmpty(authorizationHeader))
             {
-                throw new TokenInvalidException("Token not send.");
+                throw new TokenInvalidException("Token not sent.");
             }
 
-            _validatedBank = await _bankRepository.GetBankByToken(authorizationHeader);
+            // Realizar validação do token conforme necessário
+            Bank validatedBank = await bankRepository.GetBankByToken(authorizationHeader);
 
-            if (_validatedBank == null)
+            if (validatedBank == null)
             {
-                throw new TokenInvalidException("Token invalid");
+                throw new TokenInvalidException("Token invalid.");
             }
 
             await _next(context);
-        }
-
-        public Bank GetValidatedBank()
-        {
-            return _validatedBank;
         }
     }
 }

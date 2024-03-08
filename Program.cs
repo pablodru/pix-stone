@@ -6,6 +6,10 @@ using Pix.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Database
+
+builder.Services.AddDbContext<AppDBContext>();
+
 // Add services to the container.
 
 builder.Services.AddControllers();
@@ -15,11 +19,11 @@ builder.Services.AddSwaggerGen();
 
 // Services and Repositories
 builder.Services.AddScoped<HealthService>();
-builder.Services.AddScoped<KeyService>();
 builder.Services.AddScoped<KeysRepository>();
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<AccountRepository>();
 builder.Services.AddScoped<BankRepository>();
+builder.Services.AddScoped<KeyService>();
 
 var app = builder.Build();
 

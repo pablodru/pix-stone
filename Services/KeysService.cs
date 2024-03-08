@@ -3,7 +3,6 @@ using Pix.DTOs;
 using Pix.Models;
 using Pix.Repositories;
 using Pix.Exceptions;
-using Pix.Middlewares;
 
 namespace Pix.Services;
 
@@ -12,18 +11,18 @@ public class KeyService
     private readonly KeysRepository _keyRepository;
     private readonly UserRepository _userRepository;
     private readonly AccountRepository _accountRepository;
-    private readonly TokenValidationMiddleware _tokenValidationMiddleware;
+    private readonly BankRepository _bankRepository;
 
 
-    public KeyService(KeysRepository keyRepository, UserRepository userRepository, AccountRepository accountRepository, TokenValidationMiddleware tokenValidationMiddleware)
+    public KeyService(KeysRepository keyRepository, UserRepository userRepository, AccountRepository accountRepository, BankRepository bankRepository)
     {
         _keyRepository = keyRepository;
         _userRepository = userRepository;
         _accountRepository = accountRepository;
-        _tokenValidationMiddleware = tokenValidationMiddleware;
+         _bankRepository = bankRepository;
     }
 
-    public async Task<Keys> CreateKey(CreateKeyDTO dto)
+    public async Task<Keys> CreateKey(CreateKeyDTO dto, string authorizationHeader)
     {
         User user = await _userRepository.GetUserByCPF(dto.User.Cpf);
         if (user == null)
@@ -35,16 +34,21 @@ public class KeyService
         }
 
         List<AccountWithKeys> accountsWithKeys = await _accountRepository.GetAccountsByUserId(user.Id);
-        if (accountsWithKeys.Count == 0)
-        {
-            Bank validatedBank = _tokenValidationMiddleware.GetValidatedBank();
-            await _accountRepository.CreateAccount(user.Id, validatedBank.Id, dto.Account.Number, dto.Account.Agency);
-        }
 
         int totalKeys = 0;
+        int accountId = 0;
         foreach (var accountWithKeys in accountsWithKeys)
         {
             totalKeys += accountWithKeys.Keys.Count;
+            if (accountWithKeys.Number == dto.Account.Number && accountWithKeys.Agency == dto.Account.Agency)
+            {
+                accountId = accountWithKeys.Id;
+            }
+            
+            if(accountWithKeys.Keys.Count == 5 && accountWithKeys.Number == dto.Account.Number && accountWithKeys.Agency == dto.Account.Agency)
+            {
+                throw new MaximumKeysException("You already have 5 Pix Keys for one of your accounts.");
+            }
         }
 
         if (totalKeys >= 20)
@@ -52,12 +56,20 @@ public class KeyService
             throw new MaximumKeysException("You cannot have more than 20 Pix Keys.");
         }
 
-        if (accountsWithKeys.Any(account => account.Keys.Count == 5 && account.Number == dto.Account.Number && account.Agency == dto.Account.Agency))
+        if (accountsWithKeys.Count == 0)
         {
-            throw new MaximumKeysException("You already have 5 Pix Keys for one of your accounts.");
+            Bank bank = await _bankRepository.GetBankByToken(authorizationHeader);
+            Account account = await _accountRepository.CreateAccount(user.Id, bank.Id, dto.Account.Number, dto.Account.Agency);
+            accountId = account.Id;
         }
 
-        Keys key = await _keyRepository.CreateKey(dto.ToEntity());
+        Key existingKey = await _keyRepository.GetKeyByValue(dto.Key.Value, dto.Key.Type);
+        if (existingKey != null)
+        {
+            throw new ExistingKeyException("The key must to be unique, the key already exists.");
+        }
+
+        Keys key = await _keyRepository.CreateKey(dto.ToEntity(), accountId);
         return key;
     }
 }

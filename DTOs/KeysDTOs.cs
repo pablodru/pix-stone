@@ -2,19 +2,14 @@ using System.ComponentModel.DataAnnotations;
 using Pix.Models;
 
 namespace Pix.DTOs;
-    public class CreateKeyDTO
-    {
-        [Required(ErrorMessage = "The key infos are required.")]
-        public required KeyInfosDTO Key { get; set; }
-
-        [Required(ErrorMessage = "The user infos are required.")]
-        public required UserDataDTO User { get; set; }
-
-        [Required(ErrorMessage = "The account infos are required.")]
-        public required AccountDTO Account { get; set; }
+public class CreateKeyDTO
+{
+    public required KeyInfosDTO Key { get; set; }
+    public required UserDataDTO User { get; set; }
+    public required AccountDTO Account { get; set; }
 
 
-        public Keys ToEntity()
+    public Keys ToEntity()
     {
         // Criar objetos dos tipos corretos com base nos DTOs
         var key = new KeyInfo { Value = Key.Value, Type = Key.Type };
@@ -24,30 +19,32 @@ namespace Pix.DTOs;
         // Retornar uma instância de Keys com os objetos criados
         return new Keys(key, user, account);
     }
-    }
+}
 
-    public class KeyInfosDTO
-    {
-        [Required(ErrorMessage = "The key value is required.")]
-        public required string Value { get; set; }
+public class KeyInfosDTO
+{
+    [Required(ErrorMessage = "The key value is required.")]
+    public string Value { get; set; }
 
-        [Required(ErrorMessage = "The key type is required.")]
-        [RegularExpression("^(CPF|Email|Phone|Random)$", ErrorMessage = "The key type must be CPF, Email, Phone, or Random.")]
-        public required string Type { get; set; }
-    }
+    [Required(ErrorMessage = "The key type is required.")]
+    [RegularExpression("^(CPF|Email|Phone|Random)$", ErrorMessage = "The key type must be CPF, Email, Phone, or Random.")]
+    public string Type { get; set; }
+}
 
-    public class UserDataDTO
-    {
-        [Required(ErrorMessage = "The CPF is required.")]
-        [RegularExpression(@"^\d{11}$", ErrorMessage = "The CPF must have 11 numbers.")]
-        public required string Cpf { get; set; }
-    }
+public class UserDataDTO
+{
+    [Required(ErrorMessage = "The CPF is required.")]
+    [RegularExpression(@"^\d{11}$", ErrorMessage = "The CPF must have 11 numbers.")]
+    public string Cpf { get; set; }
+}
 
-    public class AccountDTO
-    {
-        [Required(ErrorMessage = "The Account number is required.")]
-        public required string Number { get; set; }
+public class AccountDTO
+{
+    [Required(ErrorMessage = "The Account number is required.")]
+    [RegularExpression("^[0-9]*$", ErrorMessage = "The Account number must contain only numbers.")]
+    public string Number { get; set; }
 
-        [Required(ErrorMessage = "The Agency is required.")]
-        public required string Agency { get; set; }
-    }
+    [Required(ErrorMessage = "The Agency is required.")]
+    [RegularExpression("^[0-9]*$", ErrorMessage = "The Agency must contain only numbers.")]
+    public string Agency { get; set; }
+}

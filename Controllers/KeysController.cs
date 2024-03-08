@@ -23,7 +23,7 @@ public class KeysController : ControllerBase
     {
         string authorizationHeader = this.HttpContext.Request.Headers["Authorization"];
 
-        Keys key = await _keyService.CreateKey(dto);
+        Keys key = await _keyService.CreateKey(dto, authorizationHeader);
         return CreatedAtAction(null, null, key);
     }
 

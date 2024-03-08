@@ -27,11 +27,12 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
     //More log stuff        
 
     ExceptionResponse response = exception switch
-    {   
+    {
       UserNotFoundException _ => new ExceptionResponse(HttpStatusCode.NotFound, exception.Message),
       TokenInvalidException _ => new ExceptionResponse(HttpStatusCode.Unauthorized, exception.Message),
       MaximumKeysException _ => new ExceptionResponse(HttpStatusCode.UnprocessableEntity, exception.Message),
       InvalidKeyValueException _ => new ExceptionResponse(HttpStatusCode.BadRequest, exception.Message),
+      ExistingKeyException _ => new ExceptionResponse(HttpStatusCode.Conflict, exception.Message),
       _ => new ExceptionResponse(HttpStatusCode.InternalServerError, "Internal server error. Please retry later.")
     };
 

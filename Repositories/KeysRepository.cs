@@ -1,14 +1,28 @@
+using Microsoft.EntityFrameworkCore;
 using Pix.Models;
+using Pix.Data;
 
 namespace Pix.Repositories;
 
 public class KeysRepository
 {
-    private readonly Keys[] Keys = [];
+    private readonly AppDBContext _context;
 
-    public Keys CreateKey(Keys key)
+    public KeysRepository(AppDBContext context)
     {
-        _ = Keys.Append(key);
+        _context = context;
+    }
+
+    public async Task<Keys> CreateKey(Keys key)
+    {
+        var newKey = new Key
+        {
+            Type = key.Key.Type,
+            Value = key.Key.Value
+        };
+        _context.Keys.Add(newKey);
+        await _context.SaveChangesAsync();
+
         return key;
     }
 }

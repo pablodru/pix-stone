@@ -19,9 +19,12 @@ public class KeysController : ControllerBase
 
 
     [HttpPost]
-    public IActionResult CreateKey(CreateKeyDTO dto)
+    public async Task<IActionResult> CreateKey(CreateKeyDTO dto)
     {
-        Keys key = _keyService.CreateKey(dto);
+        string authorizationHeader = this.HttpContext.Request.Headers["Authorization"];
+
+        Keys key = await _keyService.CreateKey(dto);
         return CreatedAtAction(null, null, key);
     }
+
 }

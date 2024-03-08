@@ -4,7 +4,7 @@ namespace Pix.Models
 {
     public class Keys
     {
-        public Keys(KeyInfo key, User user, Account account)
+        public Keys(KeyInfo key, UserInfo user, AccountInfo account)
         {
             Key = key;
             User = user;
@@ -15,10 +15,10 @@ namespace Pix.Models
         public KeyInfo Key { get; set; }
 
         [JsonPropertyName("user")]
-        public User User { get; set; }
+        public UserInfo User { get; set; }
 
         [JsonPropertyName("account")]
-        public Account Account { get; set; }
+        public AccountInfo Account { get; set; }
     }
 
     public class KeyInfo
@@ -27,12 +27,12 @@ namespace Pix.Models
         public string Type { get; set; }
     }
 
-    public class User
+    public class UserInfo
     {
         public string CPF { get; set; }
     }
 
-    public class Account
+    public class AccountInfo
     {
         public string Number { get; set; }
         public string Agency { get; set; }

@@ -19,7 +19,6 @@ public class AccountRepository
                 .Where(a => a.UserId == id)
                 .ToListAsync();
 
-        // Mapear objetos Account para AccountWithKeys
         var accountsWithKeys = accounts.Select(a => new AccountWithKeys
         {
             Id = a.Id,
@@ -47,4 +46,36 @@ public class AccountRepository
 
         return newAccount;
     }
+
+    public async Task<AccountWithUser> GetAccountById(int id)
+    {
+        var account = await _context.Accounts
+            .Include(a => a.User)
+            .Include(a => a.Bank)
+            .FirstOrDefaultAsync(a => a.Id == id);
+        var accountWithUserAndBank = new AccountWithUser
+        {
+            Id = account.Id,
+            Number = account.Number,
+            Agency = account.Agency,
+            BankId = account.BankId,
+            UserId = account.UserId,
+            User = account.User,
+            Bank = account.Bank
+        };
+
+        return accountWithUserAndBank;
+    }
+
+    public async Task<Account?> GetAccountByNumberAndAgency(string number, string agency, int bankId)
+    {
+        return await _context.Accounts
+            .FirstOrDefaultAsync(a => 
+            a.Number == number && 
+            a.Agency == agency && 
+            a.BankId == bankId
+        );
+    }
+
+
 }

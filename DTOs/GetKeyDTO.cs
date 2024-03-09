@@ -1,0 +1,19 @@
+using System.ComponentModel.DataAnnotations;
+
+namespace Pix.DTOs;
+public class GetKeyDTO
+{
+
+    public GetKeyDTO (string type, string value)
+    {
+        Type = type;
+        Value = value;
+    }
+
+    [Required(ErrorMessage = "The key value is required.")]
+    public string Value { get; set; }
+
+    [Required(ErrorMessage = "The key type is required.")]
+    [RegularExpression("^(CPF|Email|Phone|Random)$", ErrorMessage = "The key type must be CPF, Email, Phone, or Random.")]
+    public string Type { get; set; }
+}

@@ -9,7 +9,7 @@ public class CreateKeyDTO
     public required AccountDTO Account { get; set; }
 
 
-    public Keys ToEntity()
+    public KeysToCreate ToEntity()
     {
         // Criar objetos dos tipos corretos com base nos DTOs
         var key = new KeyInfo { Value = Key.Value, Type = Key.Type };
@@ -17,7 +17,7 @@ public class CreateKeyDTO
         var account = new AccountInfo { Number = Account.Number, Agency = Account.Agency };
 
         // Retornar uma instância de Keys com os objetos criados
-        return new Keys(key, user, account);
+        return new KeysToCreate(key, user, account);
     }
 }
 
@@ -41,10 +41,10 @@ public class UserDataDTO
 public class AccountDTO
 {
     [Required(ErrorMessage = "The Account number is required.")]
-    [RegularExpression("^[0-9]*$", ErrorMessage = "The Account number must contain only numbers.")]
+    [RegularExpression("^[0-9]{9}$", ErrorMessage = "The Account number must contain exactly 9 numbers.")]
     public string Number { get; set; }
 
     [Required(ErrorMessage = "The Agency is required.")]
-    [RegularExpression("^[0-9]*$", ErrorMessage = "The Agency must contain only numbers.")]
+    [RegularExpression("^[0-9]{4}$", ErrorMessage = "The Agency must contain exactly 4 numbers.")]
     public string Agency { get; set; }
 }

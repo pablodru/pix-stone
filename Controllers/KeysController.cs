@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Pix.DTOs;
 using Pix.Models;
@@ -21,10 +22,20 @@ public class KeysController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateKey(CreateKeyDTO dto)
     {
-        string authorizationHeader = this.HttpContext.Request.Headers["Authorization"];
+        string? authorizationHeader = this.HttpContext.Request.Headers["Authorization"];
 
-        Keys key = await _keyService.CreateKey(dto, authorizationHeader);
+        KeysToCreate key = await _keyService.CreateKey(dto, authorizationHeader);
         return CreatedAtAction(null, null, key);
+    }
+
+    [HttpGet("/keys/{Type}/{Value}")]
+    public async Task<IActionResult> GetKeyInformation([FromRoute] string Type, [FromRoute] string Value)
+    {
+        var dto = new GetKeyDTO(Type, Value);
+        string? authorizationHeader = this.HttpContext.Request.Headers["Authorization"];
+
+        KeyWithAccountInfo key = await _keyService.GetKeyInformation(dto, authorizationHeader);
+        return Ok(key);
     }
 
 }

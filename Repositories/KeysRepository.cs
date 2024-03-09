@@ -13,7 +13,7 @@ public class KeysRepository
         _context = context;
     }
 
-    public async Task<Keys> CreateKey(Keys key, int accountId)
+    public async Task<KeysToCreate> CreateKey(KeysToCreate key, int accountId)
     {
         var newKey = new Key
         {

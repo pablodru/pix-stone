@@ -17,16 +17,26 @@ namespace Pix.Middlewares
 
         public async Task InvokeAsync(HttpContext context, BankRepository bankRepository)
         {
-            // Obter o token de autorização do cabeçalho da solicitação
-            var authorizationHeader = context.Request.Headers["Authorization"];
+            var authorizationHeader = context.Request.Headers["Authorization"].FirstOrDefault();
 
             if (string.IsNullOrEmpty(authorizationHeader))
             {
                 throw new TokenInvalidException("Token not sent.");
             }
 
-            // Realizar validação do token conforme necessário
-            Bank validatedBank = await bankRepository.GetBankByToken(authorizationHeader);
+            if (!authorizationHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new TokenInvalidException("Invalid token format.");
+            }
+
+            var token = authorizationHeader.Substring("Bearer ".Length).Trim();
+
+            if (string.IsNullOrEmpty(token))
+            {
+                throw new TokenInvalidException("Token not provided.");
+            }
+
+            Bank validatedBank = await bankRepository.GetBankByToken(token);
 
             if (validatedBank == null)
             {

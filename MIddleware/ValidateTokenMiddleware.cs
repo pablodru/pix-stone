@@ -17,6 +17,13 @@ namespace Pix.Middlewares
 
         public async Task InvokeAsync(HttpContext context, BankRepository bankRepository)
         {
+
+            if (context.Request.Path.StartsWithSegments("/health"))
+            {
+                await _next(context);
+                return;
+            }
+            
             var authorizationHeader = context.Request.Headers["Authorization"].FirstOrDefault();
 
             if (string.IsNullOrEmpty(authorizationHeader))

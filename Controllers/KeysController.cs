@@ -8,6 +8,7 @@ namespace Pix.Controllers;
 
 [ApiController]
 [Route("[controller]")]
+[Authorize]
 
 public class KeysController : ControllerBase
 {

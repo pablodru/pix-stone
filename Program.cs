@@ -36,6 +36,7 @@ builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<AccountRepository>();
 builder.Services.AddScoped<BankRepository>();
 builder.Services.AddScoped<KeyService>();
+builder.Services.AddScoped<TokenValidationMiddleware>();
 
 var app = builder.Build();
 
@@ -51,14 +52,11 @@ app.UseHttpMetrics(options => options.AddCustomLabel("host", context => context.
 
 app.UseHttpsRedirection();
 
-app.UseAuthorization();
-
 app.MapControllers();
 
 app.MapMetrics();
 
 // Middlewares
 app.UseMiddleware<ExceptionHandlingMiddleware>();
-app.UseMiddleware<TokenValidationMiddleware>();
 
 app.Run();

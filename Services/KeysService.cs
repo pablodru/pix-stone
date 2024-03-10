@@ -5,6 +5,7 @@ using Pix.Repositories;
 using Pix.Exceptions;
 using System.Reflection.Metadata.Ecma335;
 using System.Text.RegularExpressions;
+using Pix.Middlewares;
 
 namespace Pix.Services;
 
@@ -13,23 +14,19 @@ public class KeyService
     private readonly KeysRepository _keyRepository;
     private readonly UserRepository _userRepository;
     private readonly AccountRepository _accountRepository;
-    private readonly BankRepository _bankRepository;
 
 
-    public KeyService(KeysRepository keyRepository, UserRepository userRepository, AccountRepository accountRepository, BankRepository bankRepository)
+    public KeyService(KeysRepository keyRepository, UserRepository userRepository, AccountRepository accountRepository)
     {
         _keyRepository = keyRepository;
         _userRepository = userRepository;
         _accountRepository = accountRepository;
-        _bankRepository = bankRepository;
     }
 
-    public async Task<KeysToCreate> CreateKey(CreateKeyDTO dto, string authorizationHeader)
+    public async Task<KeysToCreate> CreateKey(CreateKeyDTO dto, Bank bank)
     {
         ValidateKeyType(dto.Key.Type, dto.Key.Value);
 
-        var token = authorizationHeader["Bearer ".Length..].Trim();
-        Bank? bank = await _bankRepository.GetBankByToken(token);
         User? user = await _userRepository.GetUserByCPF(dto.User.Cpf);
         if (user == null)
         {
@@ -99,7 +96,7 @@ public class KeyService
         return key;
     }
 
-    public async Task<KeyWithAccountInfo> GetKeyInformation(GetKeyDTO dto, string authorizationHeader)
+    public async Task<KeyWithAccountInfo> GetKeyInformation(GetKeyDTO dto, Bank bank)
     {
 
         ValidateKeyType(dto.Type, dto.Value);

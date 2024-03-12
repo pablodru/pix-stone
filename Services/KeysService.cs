@@ -51,21 +51,17 @@ public class KeyService(KeysRepository keyRepository, UserRepository userReposit
         return response;
     }
 
-    public void ValidateKeyType(string Type, string Value)
+    public void ValidateKeyType(EnumDatabase.KeyTypes Type, string Value)
     {
-        if (!Regex.IsMatch(Type, "^(CPF|Email|Phone|Random)$"))
-        {
-            throw new TypeNotMatchException("The type must be CPF, Email, Phone or Random.");
-        }
-        if (Type == "CPF" && !Regex.IsMatch(Value, @"^\d{11}$"))
+        if (Type == EnumDatabase.KeyTypes.CPF && !Regex.IsMatch(Value, @"^\d{11}$"))
         {
             throw new TypeNotMatchException("The CPF value must have 11 numbers.");
         }
-        if (Type == "Phone" && !Regex.IsMatch(Value, "^[0-9]{11}$"))
+        if (Type == EnumDatabase.KeyTypes.Phone && !Regex.IsMatch(Value, "^[0-9]{11}$"))
         {
             throw new TypeNotMatchException("The Phone value must have 11 numbers.");
         }
-        if (Type == "Email" && !Regex.IsMatch(Value, @"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$"))
+        if (Type == EnumDatabase.KeyTypes.Email && !Regex.IsMatch(Value, @"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$"))
         {
             throw new TypeNotMatchException("The Email is not valid.");
         }
@@ -77,7 +73,7 @@ public class KeyService(KeysRepository keyRepository, UserRepository userReposit
         {
             throw new NotFoundException("CPF not found.");
         }
-        else if (dto.Key.Type == "CPF" && dto.Key.Value != dto.User.Cpf)
+        else if (dto.Key.Type == EnumDatabase.KeyTypes.CPF && dto.Key.Value != dto.User.Cpf)
         {
             throw new InvalidKeyValueException("When the key type is CPF, the key value must be the same as the user cpf.");
         }

@@ -1,10 +1,11 @@
 using System.ComponentModel.DataAnnotations;
+using Pix.Models;
 
 namespace Pix.DTOs;
 public class GetKeyDTO
 {
 
-    public GetKeyDTO (string type, string value)
+    public GetKeyDTO (EnumDatabase.KeyTypes type, string value)
     {
         Type = type;
         Value = value;
@@ -15,5 +16,5 @@ public class GetKeyDTO
 
     [Required(ErrorMessage = "The key type is required.")]
     [RegularExpression("^(CPF|Email|Phone|Random)$", ErrorMessage = "The key type must be CPF, Email, Phone, or Random.")]
-    public string Type { get; set; }
+    public EnumDatabase.KeyTypes Type { get; set; }
 }

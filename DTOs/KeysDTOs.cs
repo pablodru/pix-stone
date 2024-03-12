@@ -28,7 +28,7 @@ public class KeyInfosDTO
 
     [Required(ErrorMessage = "The key type is required.")]
     [RegularExpression("^(CPF|Email|Phone|Random)$", ErrorMessage = "The key type must be CPF, Email, Phone, or Random.")]
-    public string Type { get; set; }
+    public EnumDatabase.KeyTypes Type { get; set; }
 }
 
 public class UserDataDTO

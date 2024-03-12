@@ -19,6 +19,17 @@ services:
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
 
+  postgres-exporter:
+    image: quay.io/prometheuscommunity/postgres-exporter:latest
+    container_name: postgres-exporter
+    network_mode: host
+    ports:
+      - 9187:9187
+    environment:
+      - DATA_SOURCE_URI=192.168.1.4:5432/dev?sslmode=disable
+      - DATA_SOURCE_USER=postgres
+      - DATA_SOURCE_PASS=151099
+
   grafana:
     container_name: grafana
     image: grafana/grafana:latest

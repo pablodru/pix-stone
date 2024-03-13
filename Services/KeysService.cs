@@ -2,19 +2,20 @@ using Pix.DTOs;
 using Pix.Models;
 using Pix.Repositories;
 using Pix.Exceptions;
-using System.Text.RegularExpressions;
+using Pix.Utilities;
 
 namespace Pix.Services;
 
-public class KeyService(KeysRepository keyRepository, UserRepository userRepository, AccountRepository accountRepository)
+public class KeyService(KeysRepository keyRepository, UserRepository userRepository, AccountRepository accountRepository, ValidationUtils validationUtils)
 {
     private readonly KeysRepository _keyRepository = keyRepository;
     private readonly UserRepository _userRepository = userRepository;
     private readonly AccountRepository _accountRepository = accountRepository;
+    private readonly ValidationUtils _validationUtils = validationUtils;
 
     public async Task<KeysToCreate> CreateKey(CreateKeyDTO dto, Bank bank)
     {
-        ValidateKeyType(dto.Key.Type, dto.Key.Value);
+        _validationUtils.ValidateKeyType(dto.Key.Type, dto.Key.Value);
 
         User? user = await _userRepository.GetUserByCPF(dto.User.Cpf);
         ValidateUserByCPF(dto, user);
@@ -36,7 +37,7 @@ public class KeyService(KeysRepository keyRepository, UserRepository userReposit
     public async Task<KeyWithAccountInfo> GetKeyInformation(GetKeyDTO dto, Bank bank)
     {
 
-        ValidateKeyType(dto.Type, dto.Value);
+        _validationUtils.ValidateKeyType(dto.Type, dto.Value);
 
         Key? existingKey = await _keyRepository.GetKeyByValue(dto.Value, dto.Type);
         if (existingKey == null)
@@ -49,22 +50,6 @@ public class KeyService(KeysRepository keyRepository, UserRepository userReposit
         var response = ModelateKeyResponse(accountWithUser, existingKey);
 
         return response;
-    }
-
-    public void ValidateKeyType(string Type, string Value)
-    {
-        if (Type == "CPF" && !Regex.IsMatch(Value, @"^\d{11}$"))
-        {
-            throw new TypeNotMatchException("The CPF value must have 11 numbers.");
-        }
-        if (Type == "Phone" && !Regex.IsMatch(Value, "^[0-9]{11}$"))
-        {
-            throw new TypeNotMatchException("The Phone value must have 11 numbers.");
-        }
-        if (Type == "Email" && !Regex.IsMatch(Value, @"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$"))
-        {
-            throw new TypeNotMatchException("The Email is not valid.");
-        }
     }
 
     public void ValidateUserByCPF(CreateKeyDTO dto, User? user)

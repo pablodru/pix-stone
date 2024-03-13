@@ -11,3 +11,12 @@ public class AccountWithUser
     public required User User { get; set; }
     public required Bank Bank { get; set; }
 }
+
+public class AccountIncludeUser
+{
+    public int Id { get; set; }
+    public required string Number { get; set; }
+    public required string Agency { get; set; }
+    public int UserId { get; set; }
+    public required User User { get; set; }
+}

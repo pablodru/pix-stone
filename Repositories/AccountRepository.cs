@@ -70,12 +70,29 @@ public class AccountRepository
     public async Task<Account?> GetAccountByNumberAndAgency(string number, string agency, int bankId)
     {
         return await _context.Accounts
-            .FirstOrDefaultAsync(a => 
-            a.Number == number && 
-            a.Agency == agency && 
+            .FirstOrDefaultAsync(a =>
+            a.Number == number &&
+            a.Agency == agency &&
             a.BankId == bankId
         );
     }
 
-
+    public async Task<AccountIncludeUser> GetAccountWithUserByNumberAndAgency(string number, string agency, int bankId)
+    {
+        var account = await _context.Accounts
+            .Include(a => a.User)
+            .FirstOrDefaultAsync(a =>
+            a.Number == number &&
+            a.Agency == agency &&
+            a.BankId == bankId);
+        var accountIncludeUser = new AccountIncludeUser
+        {
+            Id = account.Id,
+            Number = account.Number,
+            Agency = account.Agency,
+            UserId = account.UserId,
+            User = account.User,
+        };
+        return accountIncludeUser;
+    }
 }

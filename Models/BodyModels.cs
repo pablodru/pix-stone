@@ -1,6 +1,27 @@
+using System.Security.Cryptography.X509Certificates;
 using System.Text.Json.Serialization;
 
 namespace Pix.Models;
+
+public class CreatePayment
+{
+    public required OriginInfo Origin { get; set; }
+    public required DestinyInfo Destiny { get; set; }
+    public int Amount { get; set; }
+    public string? Description { get; set; }
+}
+
+public class OriginInfo
+{
+    public required UserInfo User;
+    public required AccountInfo Account;
+}
+
+public class DestinyInfo
+{
+    public required KeyInfo Key;
+}
+
 public class KeysToCreate
 {
     public KeysToCreate(KeyInfo key, UserInfo user, AccountInfo account)

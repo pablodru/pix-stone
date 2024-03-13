@@ -4,6 +4,7 @@ using Pix.Repositories;
 using Pix.Data;
 using Pix.Middlewares;
 using Prometheus;
+using Pix.Utilities;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,6 +38,9 @@ builder.Services.AddScoped<AccountRepository>();
 builder.Services.AddScoped<BankRepository>();
 builder.Services.AddScoped<KeyService>();
 builder.Services.AddScoped<TokenValidationMiddleware>();
+builder.Services.AddScoped<PaymentService>();
+builder.Services.AddScoped<ValidationUtils>();
+builder.Services.AddScoped<PaymentRepository>();
 
 var app = builder.Build();
 

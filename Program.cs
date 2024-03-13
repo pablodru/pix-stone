@@ -47,8 +47,14 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseMetricServer();
-app.UseHttpMetrics(options => options.AddCustomLabel("host", context => context.Request.Host.Host));
+app.UseMetricServer(); // coleta as métricas
+app.UseHttpMetrics(options => 
+{
+	options.AddCustomLabel("host", context => context.Request.Host.Host);
+});
+
+// app.MapControllers();
+app.MapMetrics(); // expõe as métricas
 
 app.UseHttpsRedirection();
 

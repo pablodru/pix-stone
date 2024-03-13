@@ -19,7 +19,7 @@ public class KeyService(KeysRepository keyRepository, UserRepository userReposit
         User? user = await _userRepository.GetUserByCPF(dto.User.Cpf);
         ValidateUserByCPF(dto, user);
 
-        ValidateExistingAccount(dto, user, bank);
+        await ValidateExistingAccount(dto, user, bank);
 
         int accountId = await ValidateKeysExceptionsReturningAccountId(dto, user, bank);
 
@@ -53,10 +53,6 @@ public class KeyService(KeysRepository keyRepository, UserRepository userReposit
 
     public void ValidateKeyType(string Type, string Value)
     {
-        if (!Regex.IsMatch(Type, "^(CPF|Email|Phone|Random)$"))
-        {
-            throw new TypeNotMatchException("The type must be CPF, Email, Phone or Random.");
-        }
         if (Type == "CPF" && !Regex.IsMatch(Value, @"^\d{11}$"))
         {
             throw new TypeNotMatchException("The CPF value must have 11 numbers.");
@@ -83,7 +79,7 @@ public class KeyService(KeysRepository keyRepository, UserRepository userReposit
         }
     }
 
-    public async void ValidateExistingAccount(CreateKeyDTO dto, User user, Bank bank)
+    public async Task ValidateExistingAccount(CreateKeyDTO dto, User user, Bank bank)
     {
         Account? existingAccount = await _accountRepository.GetAccountByNumberAndAgency(dto.Account.Number, dto.Account.Agency, bank.Id);
 

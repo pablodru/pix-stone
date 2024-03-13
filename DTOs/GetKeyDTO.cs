@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Pix.Models;
 
 namespace Pix.DTOs;
 public class GetKeyDTO

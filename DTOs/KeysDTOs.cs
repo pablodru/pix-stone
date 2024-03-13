@@ -11,12 +11,10 @@ public class CreateKeyDTO
 
     public KeysToCreate ToEntity()
     {
-        // Criar objetos dos tipos corretos com base nos DTOs
         var key = new KeyInfo { Value = Key.Value, Type = Key.Type };
         var user = new UserInfo { CPF = User.Cpf };
         var account = new AccountInfo { Number = Account.Number, Agency = Account.Agency };
 
-        // Retornar uma instância de Keys com os objetos criados
         return new KeysToCreate(key, user, account);
     }
 }

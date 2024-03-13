@@ -19,7 +19,7 @@ public class KeyService(KeysRepository keyRepository, UserRepository userReposit
         User? user = await _userRepository.GetUserByCPF(dto.User.Cpf);
         ValidateUserByCPF(dto, user);
 
-        ValidateExistingAccount(dto, user, bank);
+        await ValidateExistingAccount(dto, user, bank);
 
         int accountId = await ValidateKeysExceptionsReturningAccountId(dto, user, bank);
 
@@ -51,17 +51,17 @@ public class KeyService(KeysRepository keyRepository, UserRepository userReposit
         return response;
     }
 
-    public void ValidateKeyType(EnumDatabase.KeyTypes Type, string Value)
+    public void ValidateKeyType(string Type, string Value)
     {
-        if (Type == EnumDatabase.KeyTypes.CPF && !Regex.IsMatch(Value, @"^\d{11}$"))
+        if (Type == "CPF" && !Regex.IsMatch(Value, @"^\d{11}$"))
         {
             throw new TypeNotMatchException("The CPF value must have 11 numbers.");
         }
-        if (Type == EnumDatabase.KeyTypes.Phone && !Regex.IsMatch(Value, "^[0-9]{11}$"))
+        if (Type == "Phone" && !Regex.IsMatch(Value, "^[0-9]{11}$"))
         {
             throw new TypeNotMatchException("The Phone value must have 11 numbers.");
         }
-        if (Type == EnumDatabase.KeyTypes.Email && !Regex.IsMatch(Value, @"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$"))
+        if (Type == "Email" && !Regex.IsMatch(Value, @"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$"))
         {
             throw new TypeNotMatchException("The Email is not valid.");
         }
@@ -73,13 +73,13 @@ public class KeyService(KeysRepository keyRepository, UserRepository userReposit
         {
             throw new NotFoundException("CPF not found.");
         }
-        else if (dto.Key.Type == EnumDatabase.KeyTypes.CPF && dto.Key.Value != dto.User.Cpf)
+        else if (dto.Key.Type == "CPF" && dto.Key.Value != dto.User.Cpf)
         {
             throw new InvalidKeyValueException("When the key type is CPF, the key value must be the same as the user cpf.");
         }
     }
 
-    public async void ValidateExistingAccount(CreateKeyDTO dto, User user, Bank bank)
+    public async Task ValidateExistingAccount(CreateKeyDTO dto, User user, Bank bank)
     {
         Account? existingAccount = await _accountRepository.GetAccountByNumberAndAgency(dto.Account.Number, dto.Account.Agency, bank.Id);
 

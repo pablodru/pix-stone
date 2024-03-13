@@ -27,7 +27,7 @@ public class KeysRepository
         return key;
     }
 
-    public async Task<Key?> GetKeyByValue(string value, EnumDatabase.KeyTypes type)
+    public async Task<Key?> GetKeyByValue(string value, string type)
     {
         return await _context.Keys.FirstOrDefaultAsync(k => k.Value == value && k.Type == type);
     }

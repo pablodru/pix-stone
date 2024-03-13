@@ -33,7 +33,7 @@ public class KeysController : ControllerBase
     }
 
     [HttpGet("/keys/{Type}/{Value}")]
-    public async Task<IActionResult> GetKeyInformation([FromRoute] EnumDatabase.KeyTypes Type, [FromRoute] string Value)
+    public async Task<IActionResult> GetKeyInformation([FromRoute] string Type, [FromRoute] string Value)
     {
         var dto = new GetKeyDTO(Type, Value);
         string? authorizationHeader = this.HttpContext.Request.Headers["Authorization"];

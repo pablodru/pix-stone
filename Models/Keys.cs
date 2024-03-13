@@ -42,7 +42,7 @@ public class KeyWithAccountInfo
 public class KeyInfo
 {
     public string Value { get; set; }
-    public EnumDatabase.KeyTypes Type { get; set; }
+    public string Type { get; set; }
 }
 
 public class UserInfo

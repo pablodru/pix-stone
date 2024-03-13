@@ -33,7 +33,7 @@ public class Key : BaseEntity
     public int Id { get; set; }
 
     [Required(ErrorMessage = "The type is required.")]
-    public EnumDatabase.KeyTypes Type { get; set; }
+    public string Type { get; set; }
 
     [Required(ErrorMessage = "The value is required.")]
     public string Value { get; set; }
@@ -71,7 +71,7 @@ public class Payment : BaseEntity
     public int Id { get; set; }
 
     [Required(ErrorMessage = "The Status is required.")]
-    public EnumDatabase.PaymentStatus Status { get; set; }
+    public string Status { get; set; }
 
     [Required(ErrorMessage = "The KeyId is required.")]
     public int KeyId { get; set; }

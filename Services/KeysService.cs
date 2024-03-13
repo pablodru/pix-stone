@@ -1,33 +1,78 @@
-using Microsoft.AspNetCore.Mvc;
 using Pix.DTOs;
 using Pix.Models;
 using Pix.Repositories;
 using Pix.Exceptions;
-using System.Reflection.Metadata.Ecma335;
 using System.Text.RegularExpressions;
-using Pix.Middlewares;
 
 namespace Pix.Services;
 
-public class KeyService
+public class KeyService(KeysRepository keyRepository, UserRepository userRepository, AccountRepository accountRepository)
 {
-    private readonly KeysRepository _keyRepository;
-    private readonly UserRepository _userRepository;
-    private readonly AccountRepository _accountRepository;
-
-
-    public KeyService(KeysRepository keyRepository, UserRepository userRepository, AccountRepository accountRepository)
-    {
-        _keyRepository = keyRepository;
-        _userRepository = userRepository;
-        _accountRepository = accountRepository;
-    }
+    private readonly KeysRepository _keyRepository = keyRepository;
+    private readonly UserRepository _userRepository = userRepository;
+    private readonly AccountRepository _accountRepository = accountRepository;
 
     public async Task<KeysToCreate> CreateKey(CreateKeyDTO dto, Bank bank)
     {
         ValidateKeyType(dto.Key.Type, dto.Key.Value);
 
         User? user = await _userRepository.GetUserByCPF(dto.User.Cpf);
+        ValidateUserByCPF(dto, user);
+
+        ValidateExistingAccount(dto, user, bank);
+
+        int accountId = await ValidateKeysExceptionsReturningAccountId(dto, user, bank);
+
+        Key? existingKey = await _keyRepository.GetKeyByValue(dto.Key.Value, dto.Key.Type);
+        if (existingKey != null)
+        {
+            throw new ExistingKeyException("The key must to be unique, the key already exists.");
+        }
+
+        KeysToCreate key = await _keyRepository.CreateKey(dto.ToEntity(), accountId);
+        return key;
+    }
+
+    public async Task<KeyWithAccountInfo> GetKeyInformation(GetKeyDTO dto, Bank bank)
+    {
+
+        ValidateKeyType(dto.Type, dto.Value);
+
+        Key? existingKey = await _keyRepository.GetKeyByValue(dto.Value, dto.Type);
+        if (existingKey == null)
+        {
+            throw new NotFoundException("The Key was not found.");
+        }
+
+        AccountWithUser accountWithUser = await _accountRepository.GetAccountById(existingKey.AccountId);
+
+        var response = ModelateKeyResponse(accountWithUser, existingKey);
+
+        return response;
+    }
+
+    public void ValidateKeyType(string Type, string Value)
+    {
+        if (!Regex.IsMatch(Type, "^(CPF|Email|Phone|Random)$"))
+        {
+            throw new TypeNotMatchException("The type must be CPF, Email, Phone or Random.");
+        }
+        if (Type == "CPF" && !Regex.IsMatch(Value, @"^\d{11}$"))
+        {
+            throw new TypeNotMatchException("The CPF value must have 11 numbers.");
+        }
+        if (Type == "Phone" && !Regex.IsMatch(Value, "^[0-9]{11}$"))
+        {
+            throw new TypeNotMatchException("The Phone value must have 11 numbers.");
+        }
+        if (Type == "Email" && !Regex.IsMatch(Value, @"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$"))
+        {
+            throw new TypeNotMatchException("The Email is not valid.");
+        }
+    }
+
+    public void ValidateUserByCPF(CreateKeyDTO dto, User? user)
+    {
         if (user == null)
         {
             throw new NotFoundException("CPF not found.");
@@ -36,18 +81,23 @@ public class KeyService
         {
             throw new InvalidKeyValueException("When the key type is CPF, the key value must be the same as the user cpf.");
         }
+    }
 
+    public async void ValidateExistingAccount(CreateKeyDTO dto, User user, Bank bank)
+    {
         Account? existingAccount = await _accountRepository.GetAccountByNumberAndAgency(dto.Account.Number, dto.Account.Agency, bank.Id);
 
         if (existingAccount != null && existingAccount.UserId != user.Id)
         {
             throw new AccountBadRequestException("This number and agency account already exists.");
         }
+    }
 
-        List<AccountWithKeys>? accountsWithKeys = await _accountRepository.GetAccountsByUserId(user.Id);
-
-        int totalKeys = 0;
+    public async Task<int> ValidateKeysExceptionsReturningAccountId(CreateKeyDTO dto, User user, Bank bank)
+    {
         int accountId = 0;
+        int totalKeys = 0;
+        List<AccountWithKeys>? accountsWithKeys = await _accountRepository.GetAccountsByUserId(user.Id);
 
         foreach (var accountWithKeys in accountsWithKeys)
         {
@@ -86,35 +136,12 @@ public class KeyService
             throw new MaximumKeysException("You cannot have more than 20 Pix Keys.");
         }
 
-        Key? existingKey = await _keyRepository.GetKeyByValue(dto.Key.Value, dto.Key.Type);
-        if (existingKey != null)
-        {
-            throw new ExistingKeyException("The key must to be unique, the key already exists.");
-        }
-
-        KeysToCreate key = await _keyRepository.CreateKey(dto.ToEntity(), accountId);
-        return key;
+        return accountId;
     }
 
-    public async Task<KeyWithAccountInfo> GetKeyInformation(GetKeyDTO dto, Bank bank)
+    public KeyWithAccountInfo ModelateKeyResponse(AccountWithUser accountWithUser, Key? existingKey)
     {
-
-        ValidateKeyType(dto.Type, dto.Value);
-
-        Key? existingKey = await _keyRepository.GetKeyByValue(dto.Value, dto.Type);
-        if (existingKey == null)
-        {
-            throw new NotFoundException("The Key was not found.");
-        }
-
-        AccountWithUser accountWithUser = await _accountRepository.GetAccountById(existingKey.AccountId);
-
-        if (accountWithUser == null || accountWithUser.User == null)
-        {
-            throw new NotFoundException("Account or User not found.");
-        }
-
-        var keyInfo = new KeyInfo
+     var keyInfo = new KeyInfo
         {
             Value = existingKey.Value,
             Type = existingKey.Type
@@ -134,30 +161,6 @@ public class KeyService
             BankId = accountWithUser.BankId.ToString()
         };
 
-        // Criar o objeto de resposta com as informações criadas
-        var response = new KeyWithAccountInfo(keyInfo, userInfo, accountInfo);
-
-        return response;
+        return new KeyWithAccountInfo(keyInfo, userInfo, accountInfo);
     }
-
-    public void ValidateKeyType(string Type, string Value)
-    {
-        if (!Regex.IsMatch(Type, "^(CPF|Email|Phone|Random)$"))
-        {
-            throw new TypeNotMatchException("The type must be CPF, Email, Phone or Random.");
-        }
-        if (Type == "CPF" && !Regex.IsMatch(Value, @"^\d{11}$"))
-        {
-            throw new TypeNotMatchException("The CPF value must have 11 numbers.");
-        }
-        if (Type == "Phone" && !Regex.IsMatch(Value, "^[0-9]{11}$"))
-        {
-            throw new TypeNotMatchException("The Phone value must have 11 numbers.");
-        }
-        if (Type == "Email" && !Regex.IsMatch(Value, @"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$"))
-        {
-            throw new TypeNotMatchException("The Email is not valid.");
-        }
-    }
-
 }

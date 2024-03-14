@@ -66,7 +66,7 @@ public class KeyService(KeysRepository keyRepository, UserRepository userReposit
 
     public async Task ValidateExistingAccount(CreateKeyDTO dto, User user, Bank bank)
     {
-        Account? existingAccount = await _accountRepository.GetAccountByNumberAndAgency(dto.Account.Number, dto.Account.Agency, bank.Id);
+        AccountWithUser? existingAccount = await _accountRepository.GetAccountByNumberAndAgency(dto.Account.Number, dto.Account.Agency, bank.Id);
 
         if (existingAccount != null && existingAccount.UserId != user.Id)
         {

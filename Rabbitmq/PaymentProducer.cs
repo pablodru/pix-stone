@@ -8,7 +8,7 @@ namespace Pix.RabbitMQ;
 
 public class PaymentProducer
 {
-    public void PublishPayment(CreatePaymentDTO dto, CreatePaymentResponse response)
+    public void PublishPayment(CreatePaymentDTO dto, CreatePaymentResponseMessage response, string destinyWebHook)
     {
         ConnectionFactory _connectionFactory = new()
         {

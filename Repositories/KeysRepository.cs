@@ -29,6 +29,9 @@ public class KeysRepository
 
     public async Task<Key?> GetKeyByValue(string value, string type)
     {
-        return await _context.Keys.FirstOrDefaultAsync(k => k.Value == value && k.Type == type);
+        return await _context.Keys
+            .Include(k => k.Account)
+            .FirstOrDefaultAsync(k => k.Value == value && k.Type == type);
+
     }
 }

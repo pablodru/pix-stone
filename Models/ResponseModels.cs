@@ -11,7 +11,7 @@ public class CreatePaymentResponse
 public class PaymentMessage
 {
     public CreatePaymentDTO DTO { get; set; }
-    public CreatePaymentResponse Response { get; set; }
+    public CreatePaymentResponseMessage Response { get; set; }
 
     public string SerializeToJson()
     {
@@ -22,4 +22,11 @@ public class PaymentMessage
     {
         return JsonSerializer.Deserialize<PaymentMessage>(json);
     }
+}
+
+public class CreatePaymentResponseMessage
+{
+    public int Id { get; set; }
+    public string WebHookDestiny { get; set; }
+    public string WebHookOrigin { get; set; }
 }

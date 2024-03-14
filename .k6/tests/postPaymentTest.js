@@ -3,8 +3,8 @@ import { sleep } from "k6";
 import { SharedArray } from "k6/data";
 
 export const options = {
-	vus: 30,
-	duration: "60s",
+	vus: 10,
+	duration: "30s",
 };
 
 const keysData = new SharedArray("keys", function () {
@@ -27,11 +27,21 @@ const banksData = new SharedArray("banks", function () {
 	return result;
 });
 
+const usersMap = {};
+for (const user of usersData) {
+    usersMap[user.Id] = user;
+}
+
+const banksMap = {};
+for (const bank of banksData) {
+    banksMap[bank.Id] = bank;
+}
+
 export default function (){
     const randomKey = keysData[Math.floor(Math.random() * keysData.length)];
     const randomAccount = accountsData[Math.floor(Math.random() * accountsData.length)];
-    const randomUser = usersData[Math.floor(Math.random() * usersData.length)];
-    const randomBank = banksData[Math.floor(Math.random() * banksData.length)];
+    const randomUser = usersMap[randomAccount.UserId];
+    const randomBank = banksMap[randomAccount.BankId];
 
     const paymentToCreate = {
         origin:{

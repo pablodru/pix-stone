@@ -21,9 +21,9 @@ public class PaymentService(ValidationUtils validationUtils, AccountRepository a
     {
         _validationUtils.ValidateKeyType(dto.Destiny.Key.Type, dto.Destiny.Key.Value);
         
-        AccountIncludeUser? originAccount = await _accountRepository.GetAccountWithUserByNumberAndAgency(dto.Origin.Account.Number, dto.Origin.Account.Agency, bank.Id);
+        AccountWithUser? originAccount = await _accountRepository.GetAccountByNumberAndAgency(dto.Origin.Account.Number, dto.Origin.Account.Agency, bank.Id); 
         if (originAccount == null) throw new NotFoundException("The origin account was not found.");
-
+        
         if (originAccount.User.CPF != dto.Origin.User.Cpf)
         {
             throw new AccountBadRequestException("The origin account does not match with user CPF.");
@@ -49,7 +49,15 @@ public class PaymentService(ValidationUtils validationUtils, AccountRepository a
             Id = payment.Id
         };
 
-        _paymentProducer.PublishPayment(dto, response);
+        AccountWithUser destinyAccount = await _accountRepository.GetAccountById(destinyKey.AccountId);
+
+        var messageResponse = new CreatePaymentResponseMessage
+        {
+            Id = payment.Id,
+            WebHookDestiny = destinyAccount.Bank.WebHook,
+            WebHookOrigin = originAccount.Bank.WebHook
+        };
+        _paymentProducer.PublishPayment(dto, messageResponse, destinyAccount.Bank.WebHook);
 
         return response;
     }

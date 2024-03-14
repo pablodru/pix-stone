@@ -77,7 +77,7 @@ public class AccountRepository
         );
     }
 
-    public async Task<AccountIncludeUser> GetAccountWithUserByNumberAndAgency(string number, string agency, int bankId)
+    public async Task<AccountIncludeUser?> GetAccountWithUserByNumberAndAgency(string number, string agency, int bankId)
     {
         var account = await _context.Accounts
             .Include(a => a.User)
@@ -85,14 +85,18 @@ public class AccountRepository
             a.Number == number &&
             a.Agency == agency &&
             a.BankId == bankId);
-        var accountIncludeUser = new AccountIncludeUser
+        if (account != null)
         {
-            Id = account.Id,
-            Number = account.Number,
-            Agency = account.Agency,
-            UserId = account.UserId,
-            User = account.User,
-        };
-        return accountIncludeUser;
+            var accountIncludeUser = new AccountIncludeUser
+            {
+                Id = account.Id,
+                Number = account.Number,
+                Agency = account.Agency,
+                UserId = account.UserId,
+                User = account.User,
+            };
+            return accountIncludeUser;
+        }
+        else return null;
     }
 }

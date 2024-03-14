@@ -20,7 +20,7 @@ public class PaymentService(ValidationUtils validationUtils, AccountRepository a
     public async Task<CreatePaymentResponse> CreatePayment(CreatePaymentDTO dto, Bank? bank)
     {
         _validationUtils.ValidateKeyType(dto.Destiny.Key.Type, dto.Destiny.Key.Value);
-
+        
         AccountIncludeUser? originAccount = await _accountRepository.GetAccountWithUserByNumberAndAgency(dto.Origin.Account.Number, dto.Origin.Account.Agency, bank.Id);
         if (originAccount == null) throw new NotFoundException("The origin account was not found.");
 

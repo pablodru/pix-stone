@@ -25,6 +25,8 @@ public class Bank : BaseEntity
     [Required(ErrorMessage = "The Bank name is required.")]
     public string Name { get; set; }
 
+    public string WebHook { get; set; }
+
     public List<Account> Accounts { get; set; }
 }
 

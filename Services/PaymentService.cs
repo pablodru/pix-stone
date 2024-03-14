@@ -36,7 +36,7 @@ public class PaymentService (ValidationUtils validationUtils, AccountRepository 
             Id = payment.Id
         };
 
-        _paymentProducer.PublishPayment(dto);
+        _paymentProducer.PublishPayment(dto, response);
 
         return response;
     }

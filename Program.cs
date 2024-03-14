@@ -5,6 +5,7 @@ using Pix.Data;
 using Pix.Middlewares;
 using Prometheus;
 using Pix.Utilities;
+using Pix.RabbitMQ;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,6 +42,7 @@ builder.Services.AddScoped<TokenValidationMiddleware>();
 builder.Services.AddScoped<PaymentService>();
 builder.Services.AddScoped<ValidationUtils>();
 builder.Services.AddScoped<PaymentRepository>();
+builder.Services.AddScoped<PaymentProducer>();
 
 var app = builder.Build();
 

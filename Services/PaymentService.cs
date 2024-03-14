@@ -3,15 +3,17 @@ using Pix.Exceptions;
 using Pix.Models;
 using Pix.Repositories;
 using Pix.Utilities;
+using Pix.RabbitMQ;
 
 namespace Pix.Services;
 
-public class PaymentService (ValidationUtils validationUtils, AccountRepository accountRepository, KeysRepository keyRepository, PaymentRepository paymentRepository)
+public class PaymentService (ValidationUtils validationUtils, AccountRepository accountRepository, KeysRepository keyRepository, PaymentRepository paymentRepository, PaymentProducer paymentProducer)
 {
     private readonly ValidationUtils _validationUtils = validationUtils;
     private readonly AccountRepository _accountRepository = accountRepository;
     private readonly KeysRepository _keyRepository = keyRepository;
     private readonly PaymentRepository _paymentRepository = paymentRepository;
+    private readonly PaymentProducer _paymentProducer = paymentProducer;
 
     public async Task<CreatePaymentResponse> CreatePayment(CreatePaymentDTO dto, Bank? bank)
     {
@@ -33,6 +35,8 @@ public class PaymentService (ValidationUtils validationUtils, AccountRepository 
         {
             Id = payment.Id
         };
+
+        _paymentProducer.PublishPayment(dto);
 
         return response;
     }

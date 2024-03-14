@@ -4,7 +4,7 @@ using Pix.Models;
 
 namespace Pix.Middlewares;
 
-public class TokenValidationMiddleware(BankRepository bankRepository)
+public class TokenService(BankRepository bankRepository)
 {
     private readonly BankRepository _bankRepository = bankRepository;
     private Bank? validatedBank;

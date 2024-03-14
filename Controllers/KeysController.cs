@@ -13,12 +13,12 @@ namespace Pix.Controllers;
 public class KeysController : ControllerBase
 {
     private readonly KeyService _keyService;
-    private readonly TokenValidationMiddleware _tokenMiddleware;
+    private readonly TokenService _tokenService;
 
-    public KeysController(KeyService keyService, TokenValidationMiddleware tokenMiddleware)
+    public KeysController(KeyService keyService, TokenService tokenService)
     {
         _keyService = keyService;
-        _tokenMiddleware = tokenMiddleware;
+        _tokenService = tokenService;
     }
 
 
@@ -26,7 +26,7 @@ public class KeysController : ControllerBase
     public async Task<IActionResult> CreateKey(CreateKeyDTO dto)
     {
         string? authorizationHeader = this.HttpContext.Request.Headers["Authorization"];
-        Bank? validatedBank = await _tokenMiddleware.ValidateToken(authorizationHeader);
+        Bank? validatedBank = await _tokenService.ValidateToken(authorizationHeader);
 
         KeysToCreate key = await _keyService.CreateKey(dto, validatedBank);
         return CreatedAtAction(null, null, key);
@@ -37,7 +37,7 @@ public class KeysController : ControllerBase
     {
         var dto = new GetKeyDTO(Type, Value);
         string? authorizationHeader = this.HttpContext.Request.Headers["Authorization"];
-        Bank? validatedBank = await _tokenMiddleware.ValidateToken(authorizationHeader);
+        Bank? validatedBank = await _tokenService.ValidateToken(authorizationHeader);
 
         KeyWithAccountInfo key = await _keyService.GetKeyInformation(dto, validatedBank);
         return Ok(key);

@@ -33,16 +33,16 @@ builder.Services.AddSwaggerGen();
 
 // Services and Repositories
 builder.Services.AddScoped<HealthService>();
+builder.Services.AddScoped<KeyService>();
+builder.Services.AddScoped<TokenService>();
+builder.Services.AddScoped<PaymentService>();
+builder.Services.AddScoped<PaymentRepository>();
 builder.Services.AddScoped<KeysRepository>();
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<AccountRepository>();
 builder.Services.AddScoped<BankRepository>();
-builder.Services.AddScoped<KeyService>();
-builder.Services.AddScoped<TokenValidationMiddleware>();
-builder.Services.AddScoped<PaymentService>();
-builder.Services.AddScoped<ValidationUtils>();
-builder.Services.AddScoped<PaymentRepository>();
 builder.Services.AddScoped<PaymentProducer>();
+builder.Services.AddScoped<ValidationUtils>();
 
 var app = builder.Build();
 

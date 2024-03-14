@@ -7,7 +7,7 @@ using Pix.RabbitMQ;
 
 namespace Pix.Services;
 
-public class PaymentService (ValidationUtils validationUtils, AccountRepository accountRepository, KeysRepository keyRepository, PaymentRepository paymentRepository, PaymentProducer paymentProducer)
+public class PaymentService(ValidationUtils validationUtils, AccountRepository accountRepository, KeysRepository keyRepository, PaymentRepository paymentRepository, PaymentProducer paymentProducer)
 {
     private readonly ValidationUtils _validationUtils = validationUtils;
     private readonly AccountRepository _accountRepository = accountRepository;
@@ -15,13 +15,15 @@ public class PaymentService (ValidationUtils validationUtils, AccountRepository 
     private readonly PaymentRepository _paymentRepository = paymentRepository;
     private readonly PaymentProducer _paymentProducer = paymentProducer;
 
+    private readonly int IDEMPOTENCY_SECONDS_TOLERANCE = 30;
+
     public async Task<CreatePaymentResponse> CreatePayment(CreatePaymentDTO dto, Bank? bank)
     {
         _validationUtils.ValidateKeyType(dto.Destiny.Key.Type, dto.Destiny.Key.Value);
-        
+
         AccountIncludeUser? originAccount = await _accountRepository.GetAccountWithUserByNumberAndAgency(dto.Origin.Account.Number, dto.Origin.Account.Agency, bank.Id);
-        if (originAccount ==  null) throw new NotFoundException("The origin account was not found.");
-        
+        if (originAccount == null) throw new NotFoundException("The origin account was not found.");
+
         if (originAccount.User.CPF != dto.Origin.User.Cpf)
         {
             throw new AccountBadRequestException("The origin account does not match with user CPF.");
@@ -29,6 +31,12 @@ public class PaymentService (ValidationUtils validationUtils, AccountRepository 
 
         Key? destinyKey = await _keyRepository.GetKeyByValue(dto.Destiny.Key.Value, dto.Destiny.Key.Type);
         if (destinyKey == null) throw new NotFoundException("The key destiny does not match with any key.");
+
+        var indempotenceKey = new PaymentIndempotenceKey(destinyKey.Id, originAccount.Id, dto.Amount);
+        if (await CheckIfDuplicatedByIdempotence(indempotenceKey))
+        {
+            throw new RecentPaymentException("A payment with these details was made less than 30 seconds ago.");
+        }
 
         Payment payment = await _paymentRepository.CreatePayment(dto.ToEntity(), destinyKey.Id, originAccount.Id);
         var response = new CreatePaymentResponse
@@ -39,5 +47,12 @@ public class PaymentService (ValidationUtils validationUtils, AccountRepository 
         _paymentProducer.PublishPayment(dto, response);
 
         return response;
+    }
+
+    private async Task<bool> CheckIfDuplicatedByIdempotence(PaymentIndempotenceKey key)
+    {
+        Payment? recentPayment = await _paymentRepository.GetPaymentByIndempotenceKey(key, IDEMPOTENCY_SECONDS_TOLERANCE);
+
+        return recentPayment != null;
     }
 }

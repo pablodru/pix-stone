@@ -28,6 +28,7 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
 
     ExceptionResponse response = exception switch
     {
+      RecentPaymentException _ => new ExceptionResponse(HttpStatusCode.Conflict, exception.Message),
       NotFoundException _ => new ExceptionResponse(HttpStatusCode.NotFound, exception.Message),
       TokenInvalidException _ => new ExceptionResponse(HttpStatusCode.Unauthorized, exception.Message),
       MaximumKeysException _ => new ExceptionResponse(HttpStatusCode.UnprocessableEntity, exception.Message),

@@ -32,6 +32,11 @@ public class PaymentService(ValidationUtils validationUtils, AccountRepository a
         Key? destinyKey = await _keyRepository.GetKeyByValue(dto.Destiny.Key.Value, dto.Destiny.Key.Type);
         if (destinyKey == null) throw new NotFoundException("The key destiny does not match with any key.");
 
+        if (destinyKey.AccountId == originAccount.Id)
+        {
+            throw new AccountBadRequestException("The origin account can't be the same as the destiny account.");
+        }
+
         var indempotenceKey = new PaymentIndempotenceKey(destinyKey.Id, originAccount.Id, dto.Amount);
         if (await CheckIfDuplicatedByIdempotence(indempotenceKey))
         {

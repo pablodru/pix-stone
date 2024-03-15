@@ -12,12 +12,16 @@ const USERS = 1_000_000;
 const BANKS = 1_000_000;
 const ACCOUNTS = 1_000_000;
 const KEYS = 1_000_000;
+const PAYMENTS = 1_000_000;
 const ERASE_DATA = true;
 
 async function run() {
 	if (ERASE_DATA) {
 		await knex("Users").del();
         await knex("Banks").del();
+		await knex("Accounts").del();
+		await knex("Keys").del();
+		await knex("Payments").del();
 	}
 	const start = new Date();
 
@@ -36,6 +40,10 @@ async function run() {
 	const keys = generateKeys(accounts);
 	await populateKeys(keys);
 	generateJson("./seed/existing_keys.json", keys);
+
+	const payments = generatePayments(accounts, keys);
+	await populatePayments(payments);
+	generateJson("./seed/existing_payments.json", payments);
 
 	console.log("Closing DB connection...");
 	await knex.destroy();
@@ -70,6 +78,7 @@ function generateBanks() {
 		banks.push({
 			Name: faker.fakerPT_BR.company.name(),
 			Token: faker.fakerPT_BR.string.uuid(),
+			WebHook: "http://localhost:5039",
 			CreatedAt: new Date(),
 			UpdatedAt: new Date(),
 		});
@@ -109,6 +118,36 @@ function generateKeys(accounts){
 		});
 	}
     return keys;
+}
+
+function generatePayments(accounts, keys){
+	console.log(`Generating ${PAYMENTS} payments...`);
+	const payments = [];
+	const statusOptions = ["PROCESSING", "FAILED", "SUCCESS"];
+	for (let i = 0; i < KEYS; i++) {
+		const randomAccount = accounts[Math.floor(Math.random() * accounts.length)];
+		const randomKey = keys[Math.floor(Math.random() * keys.length)];
+		const randomStatusIndex = Math.floor(Math.random() * statusOptions.length);
+		const randomStatus = statusOptions[randomStatusIndex];
+		payments.push({
+			Status: randomStatus,
+			Amount: faker.fakerPT_BR.number.int({max: 15000}).toString(),
+			AccountId: randomAccount.Id,
+			KeyId: randomKey.Id,
+			CreatedAt: new Date(),
+			UpdatedAt: new Date(),
+		});
+	}
+    return payments;
+}
+
+async function populatePayments(payments){
+	console.log("Storing on DB...");
+	const tableName = "Payments";
+	const insertedIds = await knex.batchInsert(tableName, payments).returning('Id');
+	for (let i = 0; i < payments.length; i++) {
+		payments[i].Id = insertedIds[i].Id;
+	}
 }
 
 async function populateBank(banks) {

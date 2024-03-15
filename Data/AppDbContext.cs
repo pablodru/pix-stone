@@ -17,13 +17,24 @@ namespace Pix.Data
         public DbSet<Bank> Banks { get; set; }
         public DbSet<Key> Keys { get; set; }
         public DbSet<Account> Accounts { get; set; }
+        public DbSet<Payment> Payments { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<User>().HasKey(u => u.Id);
-            modelBuilder.Entity<Bank>().HasKey(b => b.Id);
-            modelBuilder.Entity<Key>().HasKey(k => k.Id);
-            modelBuilder.Entity<Account>().HasKey(a => a.Id);
+            modelBuilder.Entity<User>()
+                .HasKey(u => u.Id);
+
+            modelBuilder.Entity<Bank>()
+                .HasKey(b => b.Id);
+
+            modelBuilder.Entity<Key>()
+                .HasKey(k => k.Id);
+
+            modelBuilder.Entity<Account>()
+                .HasKey(a => a.Id);
+
+            modelBuilder.Entity<Payment>()
+                .HasKey(p => p.Id);
 
             modelBuilder.Entity<User>()
                 .HasMany(u => u.Accounts)
@@ -39,6 +50,16 @@ namespace Pix.Data
                 .HasMany(a => a.Keys)
                 .WithOne(k => k.Account)
                 .HasForeignKey(k => k.AccountId);
+
+            modelBuilder.Entity<Account>()
+                .HasMany(a => a.Payments)
+                .WithOne(p => p.Account)
+                .HasForeignKey(p => p.AccountId);
+
+            modelBuilder.Entity<Key>()
+                .HasMany(k => k.Payments)
+                .WithOne(p => p.Key)
+                .HasForeignKey(p => p.KeyId);
 
             base.OnModelCreating(modelBuilder);
         }

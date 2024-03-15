@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace Pix.Models;
 public class User : BaseEntity
@@ -23,6 +24,8 @@ public class Bank : BaseEntity
 
     [Required(ErrorMessage = "The Bank name is required.")]
     public string Name { get; set; }
+
+    public string WebHook { get; set; }
 
     public List<Account> Accounts { get; set; }
 }
@@ -75,11 +78,12 @@ public class Payment : BaseEntity
 
     [Required(ErrorMessage = "The KeyId is required.")]
     public int KeyId { get; set; }
+    [JsonIgnore]
     public Key Key { get; set; }
 
     [Required(ErrorMessage = "The BankId is required.")]
-    public int BankId { get; set; }
-    public Bank Bank { get; set; }
+    public int AccountId { get; set; }
+    public Account Account { get; set; }
 
     [Required(ErrorMessage = "The Amount is required.")]
     public int Amount { get; set; }

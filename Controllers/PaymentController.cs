@@ -25,5 +25,13 @@ public class PaymentController(PaymentService paymentService, TokenService token
 
         return CreatedAtAction(null, null, response);
     }
+
+    [HttpPut("/payments/update")]
+    public async Task<IActionResult> UpdatePayment(UpdatePaymentDTO dto)
+    {        
+        var response = await _paymentService.UpdatePayment(dto);
+
+        return CreatedAtAction(null, null, response);
+    }
 }
 

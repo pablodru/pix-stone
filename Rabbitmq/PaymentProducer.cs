@@ -22,7 +22,7 @@ public class PaymentProducer
 
         channel.QueueDeclare(
             queue: queueName,
-            durable: false,
+            durable: true,
             exclusive: false,
             autoDelete: false,
             arguments: null
@@ -33,6 +33,7 @@ public class PaymentProducer
         var body = Encoding.UTF8.GetBytes(jsonMessage);
 
         var properties = channel.CreateBasicProperties();
+        properties.Persistent = true;
         properties.Headers = new System.Collections.Generic.Dictionary<string, object>
         {
             { "retry-count", 0 }

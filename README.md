@@ -4,7 +4,7 @@ Este projeto consiste numa API que simula o papel do Banco Central no PIX, os us
 
 ## Documentação 📚
 
-URL da Documentação: `[https://app.swaggerhub.com/apis-docs/PDROCHA03/Fast-Food-Api/1.0.0](https://app.swaggerhub.com/apis/PDROCHA03/API-Pix/1.0.0)`;
+URL da Documentação: `https://app.swaggerhub.com/apis/PDROCHA03/API-Pix/1.0.0`;
 
 ## Instalação e Execução 🚀
 

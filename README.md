@@ -2,6 +2,10 @@
 
 Este projeto consiste numa API que simula o papel do Banco Central no PIX, os usuários da API seriam as Payment Service Provider (PSP) que utilizam para criar chaves pix e pagamentos.
 
+## Documentação 📚
+
+URL da Documentação: `[https://app.swaggerhub.com/apis-docs/PDROCHA03/Fast-Food-Api/1.0.0](https://app.swaggerhub.com/apis/PDROCHA03/API-Pix/1.0.0)`;
+
 ## Instalação e Execução 🚀
 
 Para rodar o projeto localmente, siga os seguinter passos:

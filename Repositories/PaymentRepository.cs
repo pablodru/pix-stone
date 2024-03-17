@@ -32,4 +32,16 @@ public class PaymentRepository(AppDBContext context)
         
         return newPayment;
     }
+
+    public async Task<Payment?> GetPaymentById(int id)
+    {
+        return await _context.Payments.FindAsync(id);
+    }
+
+    public async Task<Payment> UpdatePayment(Payment payment, string status)
+    {
+        payment.Status = status;
+        await _context.SaveChangesAsync();
+        return payment;
+    }
 }

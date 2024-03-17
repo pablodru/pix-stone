@@ -1,0 +1,53 @@
+version: '3.8'
+services:
+  
+  postgres:
+    image: postgres
+    container_name: postgres
+    network_mode: host
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: pix-dotnet
+    volumes:
+      - postgres-volume:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  
+  pix:
+    image: pix
+    container_name: pix
+    network_mode: host
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    environment:
+      - DATABASE__HOST=postgres
+      - DATABASE__PORT=5432
+      - DATABASE__USERNAME=postgres
+      - DATABASE__PASSWORD=151099
+      - DATABASE__NAME=pix-dotnet
+
+  migrate:
+    image: pix-migrate
+    container_name: pix-migrate
+    network_mode: host
+    build:
+      context: .
+      dockerfile: Dockerfile.migrations
+    environment:
+      - DATABASE__HOST=postgres
+      - DATABASE__PORT=5432
+      - DATABASE__USERNAME=postgres
+      - DATABASE__PASSWORD=151099
+      - DATABASE__NAME=pix-dotnet
+    
+
+volumes:
+  postgres-volume:

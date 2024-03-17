@@ -22,7 +22,7 @@ services:
     container_name: postgres-exporter
     network_mode: host
     environment:
-      - DATA_SOURCE_URI=192.168.1.4:5432/dev?sslmode=disable
+      - DATA_SOURCE_URI=localhost:5432/dev?sslmode=disable
       - DATA_SOURCE_USER=postgres
       - DATA_SOURCE_PASS=151099
 

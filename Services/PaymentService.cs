@@ -68,4 +68,14 @@ public class PaymentService(ValidationUtils validationUtils, AccountRepository a
 
         return recentPayment != null;
     }
+
+    public async Task<Payment> UpdatePayment(UpdatePaymentDTO dto)
+    {
+        var existingPayment = await _paymentRepository.GetPaymentById(dto.Id);
+        if (existingPayment ==  null) throw new NotFoundException("PaymentID not found.");
+
+        var updatedPayment = await _paymentRepository.UpdatePayment(existingPayment, dto.Status);
+
+        return updatedPayment;
+    }
 }

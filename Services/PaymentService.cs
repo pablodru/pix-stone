@@ -22,26 +22,13 @@ public class PaymentService(ValidationUtils validationUtils, AccountRepository a
         _validationUtils.ValidateKeyType(dto.Destiny.Key.Type, dto.Destiny.Key.Value);
         
         AccountWithUser? originAccount = await _accountRepository.GetAccountByNumberAndAgency(dto.Origin.Account.Number, dto.Origin.Account.Agency, bank.Id); 
-        if (originAccount == null) throw new NotFoundException("The origin account was not found.");
-        
-        if (originAccount.User.CPF != dto.Origin.User.Cpf)
-        {
-            throw new AccountBadRequestException("The origin account does not match with user CPF.");
-        }
+        ValidateOriginAccount(originAccount, dto);
 
         Key? destinyKey = await _keyRepository.GetKeyByValue(dto.Destiny.Key.Value, dto.Destiny.Key.Type);
-        if (destinyKey == null) throw new NotFoundException("The key destiny does not match with any key.");
-
-        if (destinyKey.AccountId == originAccount.Id)
-        {
-            throw new AccountBadRequestException("The origin account can't be the same as the destiny account.");
-        }
+        ValidateDestinyKey(destinyKey, originAccount);
 
         var indempotenceKey = new PaymentIndempotenceKey(destinyKey.Id, originAccount.Id, dto.Amount);
-        if (await CheckIfDuplicatedByIdempotence(indempotenceKey))
-        {
-            throw new RecentPaymentException("A payment with these details was made less than 30 seconds ago.");
-        }
+        await CheckIfDuplicatedByIdempotence(indempotenceKey);
 
         Payment payment = await _paymentRepository.CreatePayment(dto.ToEntity(), destinyKey.Id, originAccount.Id);
         var response = new CreatePaymentResponse
@@ -62,11 +49,34 @@ public class PaymentService(ValidationUtils validationUtils, AccountRepository a
         return response;
     }
 
-    private async Task<bool> CheckIfDuplicatedByIdempotence(PaymentIndempotenceKey key)
+    public void ValidateOriginAccount(AccountWithUser? originAccount, CreatePaymentDTO dto)
+    {
+        if (originAccount == null) throw new NotFoundException("The origin account was not found.");
+        
+        if (originAccount.User.CPF != dto.Origin.User.Cpf)
+        {
+            throw new AccountBadRequestException("The origin account does not match with user CPF.");
+        }
+    }
+
+    public void ValidateDestinyKey(Key? destinyKey, AccountWithUser originAccount)
+    {
+        if (destinyKey == null) throw new NotFoundException("The key destiny does not match with any key.");
+
+        if (destinyKey.AccountId == originAccount.Id)
+        {
+            throw new AccountBadRequestException("The origin account can't be the same as the destiny account.");
+        }
+    }
+
+    private async Task CheckIfDuplicatedByIdempotence(PaymentIndempotenceKey key)
     {
         Payment? recentPayment = await _paymentRepository.GetPaymentByIndempotenceKey(key, IDEMPOTENCY_SECONDS_TOLERANCE);
 
-        return recentPayment != null;
+        if (recentPayment != null)
+        {
+            throw new RecentPaymentException("A payment with these details was made less than 30 seconds ago.");
+        }
     }
 
     public async Task<Payment> UpdatePayment(UpdatePaymentDTO dto)

@@ -487,3 +487,4 @@ $RECYCLE.BIN/
 .k6/seed/existing_banks.json
 .k6/seed/existing_users.json
 .k6/seed/existing_keys.json
+.k6/seed/existing_payments.json

@@ -66,8 +66,6 @@ app.UseHttpsRedirection();
 
 app.MapControllers();
 
-app.MapMetrics();
-
 // Middlewares
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 

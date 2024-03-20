@@ -4,11 +4,12 @@ services:
   postgres:
     image: postgres
     container_name: postgres
-    network_mode: host
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: pix-dotnet
+      POSTGRES_DB: pix-dotnet-dockerized
+    ports:
+      - 5433:5432
     volumes:
       - postgres-volume:/var/lib/postgresql/data
     healthcheck:
@@ -20,24 +21,24 @@ services:
   pix:
     image: pix
     container_name: pix
-    network_mode: host
     build:
       context: .
       dockerfile: Dockerfile
     restart: unless-stopped
+    ports:
+      - 8080:8080
     depends_on:
       - postgres
     environment:
       - DATABASE__HOST=postgres
       - DATABASE__PORT=5432
       - DATABASE__USERNAME=postgres
-      - DATABASE__PASSWORD=151099
-      - DATABASE__NAME=pix-dotnet
+      - DATABASE__PASSWORD=postgres
+      - DATABASE__NAME=pix-dotnet-dockerized
 
   migrate:
     image: pix-migrate
-    container_name: pix-migrate
-    network_mode: host
+    container_name: migrate
     build:
       context: .
       dockerfile: Dockerfile.migrations
@@ -45,9 +46,18 @@ services:
       - DATABASE__HOST=postgres
       - DATABASE__PORT=5432
       - DATABASE__USERNAME=postgres
-      - DATABASE__PASSWORD=151099
-      - DATABASE__NAME=pix-dotnet
-    
+      - DATABASE__PASSWORD=postgres
+      - DATABASE__NAME=pix-dotnet-dockerized
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=pdrocha03@gmail.com
+      - PGADMIN_DEFAULT_PASSWORD=151099
+    ports:
+      - "16543:80"
+    depends_on:
+      - postgres
 
 volumes:
   postgres-volume:

@@ -61,6 +61,18 @@ namespace Pix.Data
                 .WithOne(p => p.Key)
                 .HasForeignKey(p => p.KeyId);
 
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.CPF)
+                .HasDatabaseName("IX_User_CPF");
+            
+            modelBuilder.Entity<Bank>()
+                .HasIndex(b => b.Token)
+                .HasDatabaseName("IX_Bank_Token");
+
+            modelBuilder.Entity<Key>()
+                .HasIndex(k => new { k.Type, k.Value})
+                .HasDatabaseName("IX_Key_Type_Value");
+
             base.OnModelCreating(modelBuilder);
         }
 

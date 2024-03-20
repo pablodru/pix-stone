@@ -12,8 +12,8 @@ using Pix.Data;
 namespace Pix.Migrations
 {
     [DbContext(typeof(AppDBContext))]
-    [Migration("20240313181538_FixingRelationsAndCollumnName")]
-    partial class FixingRelationsAndCollumnName
+    [Migration("20240319140501_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -83,6 +83,10 @@ namespace Pix.Migrations
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("WebHook")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 

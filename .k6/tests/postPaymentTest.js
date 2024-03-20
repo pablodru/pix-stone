@@ -3,7 +3,7 @@ import { sleep } from "k6";
 import { SharedArray } from "k6/data";
 
 export const options = {
-	vus: 20,
+	vus: 30,
 	duration: "30s",
 };
 
@@ -12,23 +12,23 @@ export default function (){
     const paymentToCreate = {
         origin:{
             user:{
-                cpf: "15539456936"
+                cpf: "59410089172"
             },
             account: {
-                number: "523538312",
-                agency: "9439"
+                number: "117996841",
+                agency: "3160"
             }
         },
         destiny: {
             key: {
-                value: "76675758196",
+                value: "99440383743",
                 type: "Phone"
             }
         },
         amount: generateRandomNumber(1000, 100000)
     }
     const body = JSON.stringify(paymentToCreate);
-    const headers = { "Content-Type": "application/json", "Authorization": `Bearer 49357fe7-17b8-4766-a69e-a0e3ddb4f8df` };
+    const headers = { "Content-Type": "application/json", "Authorization": `Bearer 7d5b6b3e-b2e1-4d7e-8c8a-b246ec0b8077` };
 
     http.post(`http://localhost:5109/payments`, body, { headers });
 

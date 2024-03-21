@@ -4,7 +4,7 @@ import { SharedArray } from "k6/data";
 
 export const options = {
 	vus: 30,
-	duration: "30s",
+	duration: "60s",
 };
 
 const usersData = new SharedArray("users", function () {

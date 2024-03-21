@@ -15,22 +15,30 @@ public class KeyService(KeysRepository keyRepository, UserRepository userReposit
 
     public async Task<KeysToCreate> CreateKey(CreateKeyDTO dto, Bank bank)
     {
+        int accountId = 0;
+
         _validationUtils.ValidateKeyType(dto.Key.Type, dto.Key.Value);
 
         User? user = await _userRepository.GetUserByCPF(dto.User.Cpf);
         ValidateUserByCPF(dto, user);
 
-        await ValidateExistingAccount(dto, user, bank);
+        AccountWithUserAndKeys? existingAccount = await _accountRepository.GetAccountByNumberAndAgency(dto.Account.Number, dto.Account.Agency, bank.Id);
+        if (existingAccount != null) accountId = existingAccount.Id;
 
-        int accountId = await ValidateKeysExceptionsReturningAccountId(dto, user, bank);
+        ValidateExistingAccount(existingAccount, user);
+        await ValidateExistingKey(dto);
 
-        Key? existingKey = await _keyRepository.GetKeyByValue(dto.Key.Value, dto.Key.Type);
-        if (existingKey != null)
+        List<AccountWithKeys>? accountsWithKeys = await _accountRepository.GetAccountsByUserId(user.Id);
+        ValidateTotalKeys(accountsWithKeys);
+
+        if (existingAccount == null)
         {
-            throw new ExistingKeyException("The key must to be unique, the key already exists.");
+            Account account = await _accountRepository.CreateAccount(user.Id, bank.Id, dto.Account.Number, dto.Account.Agency);
+            accountId = account.Id;
         }
 
         KeysToCreate key = await _keyRepository.CreateKey(dto.ToEntity(), accountId);
+
         return key;
     }
 
@@ -45,7 +53,7 @@ public class KeyService(KeysRepository keyRepository, UserRepository userReposit
             throw new NotFoundException("The Key was not found.");
         }
 
-        AccountWithUser accountWithUser = await _accountRepository.GetAccountById(existingKey.AccountId);
+        AccountWithUserAndBank accountWithUser = await _accountRepository.GetAccountById(existingKey.AccountId);
 
         var response = ModelateKeyResponse(accountWithUser, existingKey);
 
@@ -64,65 +72,40 @@ public class KeyService(KeysRepository keyRepository, UserRepository userReposit
         }
     }
 
-    public async Task ValidateExistingAccount(CreateKeyDTO dto, User user, Bank bank)
+    public static void ValidateTotalKeys(List<AccountWithKeys>? accountsWithKeys)
     {
-        AccountWithUser? existingAccount = await _accountRepository.GetAccountByNumberAndAgency(dto.Account.Number, dto.Account.Agency, bank.Id);
+        int totalKeys = accountsWithKeys.Sum(account => account.Keys.Count);
+        if (totalKeys >= 20)
+        {
+            throw new MaximumKeysException("You already have the maximum of 20 keys created.");
+        }
+    }
+
+    public async Task ValidateExistingKey(CreateKeyDTO dto)
+    {
+        Key? existingKey = await _keyRepository.GetKeyByValue(dto.Key.Value, dto.Key.Type);
+        if (existingKey != null)
+        {
+            throw new ExistingKeyException("The key must to be unique.");
+        }
+    }
+    public static void ValidateExistingAccount(AccountWithUserAndKeys? existingAccount, User user)
+    {
 
         if (existingAccount != null && existingAccount.UserId != user.Id)
         {
-            throw new AccountBadRequestException("This number and agency account already exists.");
+            throw new AccountBadRequestException("This account isn't from the user.");
+        }
+
+        if (existingAccount != null && existingAccount.Keys.Count == 5)
+        {
+            throw new MaximumKeysException("You already have 5 keys in this account.");
         }
     }
 
-    public async Task<int> ValidateKeysExceptionsReturningAccountId(CreateKeyDTO dto, User user, Bank bank)
+    public KeyWithAccountInfo ModelateKeyResponse(AccountWithUserAndBank accountWithUser, Key? existingKey)
     {
-        int accountId = 0;
-        int totalKeys = 0;
-        List<AccountWithKeys>? accountsWithKeys = await _accountRepository.GetAccountsByUserId(user.Id);
-
-        foreach (var accountWithKeys in accountsWithKeys)
-        {
-
-            totalKeys += accountWithKeys.Keys.Count;
-            if (accountWithKeys.Number == dto.Account.Number && accountWithKeys.Agency == dto.Account.Agency && accountWithKeys.BankId == bank.Id)
-            {
-                accountId = accountWithKeys.Id;
-            }
-
-            if (accountWithKeys.Keys.Count == 5 && accountWithKeys.Number == dto.Account.Number && accountWithKeys.Agency == dto.Account.Agency)
-            {
-                throw new MaximumKeysException("You already have 5 Pix Keys for one of your accounts.");
-            }
-
-            if (accountWithKeys.BankId == bank.Id && (accountWithKeys.Number != dto.Account.Number || accountWithKeys.Agency != dto.Account.Agency))
-            {
-                throw new AccountBadRequestException("The user can have 1 account per PSP. Use the created account.");
-            }
-        }
-
-        if (accountsWithKeys.Count == 0 || accountsWithKeys == null)
-        {
-            Account? account = await _accountRepository.CreateAccount(user.Id, bank.Id, dto.Account.Number, dto.Account.Agency);
-            accountId = account.Id;
-        }
-
-        if (accountId == 0)
-        {
-            Account? account = await _accountRepository.CreateAccount(user.Id, bank.Id, dto.Account.Number, dto.Account.Agency);
-            accountId = account.Id;
-        }
-
-        if (totalKeys >= 20)
-        {
-            throw new MaximumKeysException("You cannot have more than 20 Pix Keys.");
-        }
-
-        return accountId;
-    }
-
-    public KeyWithAccountInfo ModelateKeyResponse(AccountWithUser accountWithUser, Key? existingKey)
-    {
-     var keyInfo = new KeyInfo
+        var keyInfo = new KeyInfo
         {
             Value = existingKey.Value,
             Type = existingKey.Type

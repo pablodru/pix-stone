@@ -33,5 +33,11 @@ public class PaymentController(PaymentService paymentService, TokenService token
 
         return CreatedAtAction(null, null, response);
     }
+
+    [HttpPost("/concilliation")]
+    public async Task CreateConcilliation(ConcilliationDTO dto)
+    {
+        await _paymentService.CreateConcilliation(dto);
+    }
 }
 

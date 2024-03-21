@@ -68,55 +68,58 @@ public class AccountRepository
     }
 
     public async Task<AccountWithUserAndKeys?> GetAccountByNumberAndAgency(string number, string agency, int bankId)
-{
-    
-    var account = await _context.Accounts
-        .Include(a => a.User)
-        .Include(a => a.Keys)
-        .FirstOrDefaultAsync(a =>
-            a.Number == number &&
-            a.Agency == agency &&
-            a.BankId == bankId);
-
-    if (account != null)
     {
-        var existingAccount = new AccountWithUserAndKeys
-        {
-            Id = account.Id,
-            Number = account.Number,
-            Agency = account.Agency,
-            UserId = account.UserId,
-            User = account.User,
-            Keys = account.Keys
-        };
-        return existingAccount;
-    }
-    else
-    {
-        return null;
-    }
-}
 
-
-    public async Task<AccountIncludeUser?> GetAccountWithUserByNumberAndAgency(string number, string agency, int bankId)
-    {
         var account = await _context.Accounts
             .Include(a => a.User)
+            .Include(a => a.Keys)
             .FirstOrDefaultAsync(a =>
-            a.Number == number &&
-            a.Agency == agency &&
-            a.BankId == bankId);
+                a.Number == number &&
+                a.Agency == agency &&
+                a.BankId == bankId);
+
         if (account != null)
         {
-            var accountIncludeUser = new AccountIncludeUser
+            var existingAccount = new AccountWithUserAndKeys
             {
                 Id = account.Id,
                 Number = account.Number,
                 Agency = account.Agency,
                 UserId = account.UserId,
                 User = account.User,
+                Keys = account.Keys
             };
-            return accountIncludeUser;
+            return existingAccount;
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+    public async Task<AccountWithUserAndBank?> GetAccountWithUserAndBank(string number, string agency, int bankId)
+    {
+        var account = await _context.Accounts
+            .Include(a => a.User)
+            .Include(a => a.Bank)
+            .FirstOrDefaultAsync(a =>
+            a.Number == number &&
+            a.Agency == agency &&
+            a.BankId == bankId);
+        if (account != null)
+        {
+            var accountWithUserAndBank = new AccountWithUserAndBank
+            {
+                Id = account.Id,
+                Number = account.Number,
+                Agency = account.Agency,
+                BankId = account.BankId,
+                UserId = account.UserId,
+                User = account.User,
+                Bank = account.Bank
+            };
+
+            return accountWithUserAndBank;
         }
         else return null;
     }

@@ -24,55 +24,53 @@ public class PaymentService(ValidationUtils validationUtils, AccountRepository a
 
     public async Task<CreatePaymentResponse> CreatePayment(CreatePaymentDTO dto, Bank? bank)
     {
-        // _validationUtils.ValidateKeyType(dto.Destiny.Key.Type, dto.Destiny.Key.Value);
+        _validationUtils.ValidateKeyType(dto.Destiny.Key.Type, dto.Destiny.Key.Value);
 
-        // AccountWithUser? originAccount = await _accountRepository.GetAccountByNumberAndAgency(dto.Origin.Account.Number, dto.Origin.Account.Agency, bank.Id);
-        // ValidateOriginAccount(originAccount, dto);
+        AccountWithUserAndBank? originAccount = await _accountRepository.GetAccountWithUserAndBank(dto.Origin.Account.Number, dto.Origin.Account.Agency, bank.Id);
+        ValidateOriginAccount(originAccount, dto);
 
-        // Key? destinyKey = await _keyRepository.GetKeyByValue(dto.Destiny.Key.Value, dto.Destiny.Key.Type);
-        // ValidateDestinyKey(destinyKey, originAccount);
+        KeyWithAccountAndBank? destinyKey = await _keyRepository.GetKeyByValueWithAccount(dto.Destiny.Key.Value, dto.Destiny.Key.Type);
+        ValidateDestinyKey(destinyKey, originAccount);
 
-        // var indempotenceKey = new PaymentIndempotenceKey(destinyKey.Id, originAccount.Id, dto.Amount);
-        // await CheckIfDuplicatedByIdempotence(indempotenceKey);
+        var indempotenceKey = new PaymentIndempotenceKey(destinyKey.Id, originAccount.Id, dto.Amount);
+        await CheckIfDuplicatedByIdempotence(indempotenceKey);
 
-        // Payment payment = await _paymentRepository.CreatePayment(dto.ToEntity(), destinyKey.Id, originAccount.Id);
-        // var response = new CreatePaymentResponse
-        // {
-        //     Id = payment.Id
-        // };
+        Payment payment = await _paymentRepository.CreatePayment(dto.ToEntity(), destinyKey.Id, originAccount.Id);
+        var response = new CreatePaymentResponse
+        {
+            Id = payment.Id
+        };
 
-        // AccountWithUser destinyAccount = await _accountRepository.GetAccountById(destinyKey.AccountId); //REFACTOR
+        var messageResponse = new CreatePaymentResponseMessage
+        {
+            Id = payment.Id,
+            WebHookDestiny = destinyKey.Bank.WebHook,
+            WebHookOrigin = originAccount.Bank.WebHook
+        };
+        _paymentProducer.PublishPayment(dto, messageResponse, destinyKey.Bank.WebHook);
 
-        // var messageResponse = new CreatePaymentResponseMessage
-        // {
-        //     Id = payment.Id,
-        //     WebHookDestiny = destinyAccount.Bank.WebHook,
-        //     WebHookOrigin = originAccount.Bank.WebHook
-        // };
-        // _paymentProducer.PublishPayment(dto, messageResponse, destinyAccount.Bank.WebHook);
-        var response = new CreatePaymentResponse();
         return response;
     }
 
-    // public void ValidateOriginAccount(AccountWithUser? originAccount, CreatePaymentDTO dto)
-    // {
-    //     if (originAccount == null) throw new NotFoundException("The origin account was not found.");
+    public void ValidateOriginAccount(AccountWithUserAndBank? originAccount, CreatePaymentDTO dto)
+    {
+        if (originAccount == null) throw new NotFoundException("The origin account was not found.");
 
-    //     if (originAccount.User.CPF != dto.Origin.User.Cpf)
-    //     {
-    //         throw new AccountBadRequestException("The origin account does not match with user CPF.");
-    //     }
-    // }
+        if (originAccount.User.CPF != dto.Origin.User.Cpf)
+        {
+            throw new AccountBadRequestException("The origin account does not match with user CPF.");
+        }
+    }
 
-    // public void ValidateDestinyKey(Key? destinyKey, AccountWithUser originAccount)
-    // {
-    //     if (destinyKey == null) throw new NotFoundException("The key destiny does not match with any key.");
+    public void ValidateDestinyKey(KeyWithAccountAndBank? destinyKey, AccountWithUserAndBank originAccount)
+    {
+        if (destinyKey == null) throw new NotFoundException("The key destiny does not match with any key.");
 
-    //     if (destinyKey.AccountId == originAccount.Id)
-    //     {
-    //         throw new AccountBadRequestException("The origin account can't be the same as the destiny account.");
-    //     }
-    // }
+        if (destinyKey.AccountId == originAccount.Id)
+        {
+            throw new AccountBadRequestException("The origin account can't be the same as the destiny account.");
+        }
+    }
 
     private async Task CheckIfDuplicatedByIdempotence(PaymentIndempotenceKey key)
     {

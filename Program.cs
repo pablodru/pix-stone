@@ -42,6 +42,7 @@ builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<AccountRepository>();
 builder.Services.AddScoped<BankRepository>();
 builder.Services.AddScoped<PaymentProducer>();
+builder.Services.AddScoped<ConcilliationProducer>();
 builder.Services.AddScoped<ValidationUtils>();
 
 var app = builder.Build();

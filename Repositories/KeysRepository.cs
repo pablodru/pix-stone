@@ -30,8 +30,26 @@ public class KeysRepository
     public async Task<Key?> GetKeyByValue(string value, string type)
     {
         return await _context.Keys
-            .Include(k => k.Account)
             .FirstOrDefaultAsync(k => k.Value == value && k.Type == type);
+    }
 
+    public async Task<KeyWithAccountAndBank?> GetKeyByValueWithAccount(string value, string type)
+    {
+        var response = await _context.Keys
+            .Include(k => k.Account)
+                .ThenInclude(a => a.Bank)
+            .FirstOrDefaultAsync(k => k.Value == value && k.Type == type);
+        
+        if (response == null) return null;
+        var KeyWithAccount = new KeyWithAccountAndBank
+        {
+            Id = response.Id,
+            Type = response.Type,
+            Value = response.Value,
+            AccountId = response.AccountId,
+            Account = response.Account,
+            Bank = response.Account.Bank
+        };
+        return KeyWithAccount;
     }
 }

@@ -4,7 +4,7 @@ import { SharedArray } from "k6/data";
 
 export const options = {
 	vus: 30,
-	duration: "30s",
+	duration: "60s",
 };
 
 export default function (){
@@ -12,23 +12,23 @@ export default function (){
     const paymentToCreate = {
         origin:{
             user:{
-                cpf: "59410089172"
+                cpf: "42840822464"
             },
             account: {
-                number: "117996841",
-                agency: "3160"
+                number: "626323358",
+                agency: "8817"
             }
         },
         destiny: {
             key: {
-                value: "99440383743",
+                value: "35138917407",
                 type: "Phone"
             }
         },
         amount: generateRandomNumber(1000, 100000)
     }
     const body = JSON.stringify(paymentToCreate);
-    const headers = { "Content-Type": "application/json", "Authorization": `Bearer 7d5b6b3e-b2e1-4d7e-8c8a-b246ec0b8077` };
+    const headers = { "Content-Type": "application/json", "Authorization": `Bearer 59252908-041b-4852-b740-f005e7dc4bb4` };
 
     http.post(`http://localhost:5109/payments`, body, { headers });
 

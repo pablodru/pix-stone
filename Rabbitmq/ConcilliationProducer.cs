@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Options;
+using Pix.Config;
 using Pix.DTOs;
 using Pix.Models;
 using RabbitMQ.Client;
@@ -6,15 +8,16 @@ using System.Text.Json;
 
 namespace Pix.RabbitMQ;
 
-public class ConcilliationProducer
+public class ConcilliationProducer(IOptions<QueueConfig> queueConfig)
 {
+    IOptions<QueueConfig> _queueConfig = queueConfig;
     public void PublishConcilliation(ConcilliationDTO dto, Bank validatedBank)
     {
         ConnectionFactory _connectionFactory = new()
         {
-            HostName = "localhost",
-            UserName = "admin",
-            Password = "admin"
+            HostName = _queueConfig.Value.HostName,
+            UserName = _queueConfig.Value.UserName,
+            Password = _queueConfig.Value.Password,
         };
         string queueName = "Concilliations";
         using var connection = _connectionFactory.CreateConnection();

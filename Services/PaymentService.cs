@@ -4,11 +4,6 @@ using Pix.Models;
 using Pix.Repositories;
 using Pix.Utilities;
 using Pix.RabbitMQ;
-using System;
-using System.Net.Http;
-using System.Threading.Tasks;
-using System.Text.Json.Serialization;
-using System.Text.Json;
 
 namespace Pix.Services;
 
@@ -23,6 +18,31 @@ public class PaymentService(ValidationUtils validationUtils, AccountRepository a
 
     private readonly int IDEMPOTENCY_SECONDS_TOLERANCE = 30;
 
+    // public async Task<CreatePaymentResponse> CreatePayment(CreatePaymentDTO dto, Bank? bank)
+    // {
+    //     _validationUtils.ValidateKeyType(dto.Destiny.Key.Type, dto.Destiny.Key.Value);
+
+    //     AccountWithUserAndBank? originAccount = await _accountRepository.GetAccountWithUserAndBank(dto.Origin.Account.Number, dto.Origin.Account.Agency, bank.Id);
+    //     ValidateOriginAccount(originAccount, dto);
+
+    //     KeyWithAccountAndBank? destinyKey = await _keyRepository.GetKeyByValueWithAccount(dto.Destiny.Key.Value, dto.Destiny.Key.Type);
+    //     ValidateDestinyKey(destinyKey, originAccount);
+
+    //     var indempotenceKey = new PaymentIndempotenceKey(destinyKey.Id, originAccount.Id, dto.Amount);
+    //     await CheckIfDuplicatedByIdempotence(indempotenceKey);
+
+    //     Payment payment = await _paymentRepository.CreatePayment(dto.ToEntity(), destinyKey.Id, originAccount.Id);
+    //     var messageResponse = new CreatePaymentResponseMessage
+    //     {
+    //         Id = payment.Id,
+    //         WebHookDestiny = destinyKey.Bank.WebHook,
+    //         WebHookOrigin = originAccount.Bank.WebHook
+    //     };
+    //     _paymentProducer.PublishPayment(dto, messageResponse);
+
+    //     return new CreatePaymentResponse { Id = payment.Id };
+    // }
+
     public async Task<CreatePaymentResponse> CreatePayment(CreatePaymentDTO dto, Bank? bank)
     {
         _validationUtils.ValidateKeyType(dto.Destiny.Key.Type, dto.Destiny.Key.Value);
@@ -30,27 +50,23 @@ public class PaymentService(ValidationUtils validationUtils, AccountRepository a
         AccountWithUserAndBank? originAccount = await _accountRepository.GetAccountWithUserAndBank(dto.Origin.Account.Number, dto.Origin.Account.Agency, bank.Id);
         ValidateOriginAccount(originAccount, dto);
 
-        KeyWithAccountAndBank? destinyKey = await _keyRepository.GetKeyByValueWithAccount(dto.Destiny.Key.Value, dto.Destiny.Key.Type);
+        Key? destinyKey = await _keyRepository.GetKeyByValue(dto.Destiny.Key.Value, dto.Destiny.Key.Type);
         ValidateDestinyKey(destinyKey, originAccount);
 
         var indempotenceKey = new PaymentIndempotenceKey(destinyKey.Id, originAccount.Id, dto.Amount);
         await CheckIfDuplicatedByIdempotence(indempotenceKey);
 
+        Bank destinyBank = await _accountRepository.GetAccountWithBankById(destinyKey.AccountId);
         Payment payment = await _paymentRepository.CreatePayment(dto.ToEntity(), destinyKey.Id, originAccount.Id);
-        var response = new CreatePaymentResponse
-        {
-            Id = payment.Id
-        };
-
         var messageResponse = new CreatePaymentResponseMessage
         {
             Id = payment.Id,
-            WebHookDestiny = destinyKey.Bank.WebHook,
+            WebHookDestiny = destinyBank.WebHook,
             WebHookOrigin = originAccount.Bank.WebHook
         };
-        _paymentProducer.PublishPayment(dto, messageResponse, destinyKey.Bank.WebHook);
+        _paymentProducer.PublishPayment(dto, messageResponse);
 
-        return response;
+        return new CreatePaymentResponse{Id = payment.Id};
     }
 
     public void ValidateOriginAccount(AccountWithUserAndBank? originAccount, CreatePaymentDTO dto)
@@ -63,7 +79,7 @@ public class PaymentService(ValidationUtils validationUtils, AccountRepository a
         }
     }
 
-    public void ValidateDestinyKey(KeyWithAccountAndBank? destinyKey, AccountWithUserAndBank originAccount)
+    public void ValidateDestinyKey(Key? destinyKey, AccountWithUserAndBank originAccount)
     {
         if (destinyKey == null) throw new NotFoundException("The key destiny does not match with any key.");
 

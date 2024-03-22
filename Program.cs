@@ -6,6 +6,7 @@ using Pix.Middlewares;
 using Prometheus;
 using Pix.Utilities;
 using Pix.RabbitMQ;
+using Pix.Config;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,6 +31,9 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+IConfigurationSection queueConfigurationSection = builder.Configuration.GetSection("QueueSettings");
+builder.Services.Configure<QueueConfig>(queueConfigurationSection);
 
 // Services and Repositories
 builder.Services.AddScoped<HealthService>();

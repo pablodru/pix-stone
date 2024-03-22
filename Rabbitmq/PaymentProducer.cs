@@ -1,20 +1,24 @@
 using System.Text;
 using System.Text.Json;
+using Microsoft.Extensions.Options;
+using Pix.Config;
 using Pix.DTOs;
 using Pix.Models;
 using RabbitMQ.Client;
 
 namespace Pix.RabbitMQ;
 
-public class PaymentProducer
+public class PaymentProducer(IOptions<QueueConfig> queueConfig)
 {
-    public void PublishPayment(CreatePaymentDTO dto, CreatePaymentResponseMessage response, string destinyWebHook)
+    IOptions<QueueConfig> _queueConfig = queueConfig;
+    
+    public void PublishPayment(CreatePaymentDTO dto, CreatePaymentResponseMessage response)
     {
         ConnectionFactory _connectionFactory = new()
         {
-            HostName = "localhost",
-            UserName = "admin",
-            Password = "admin"
+            HostName = _queueConfig.Value.HostName,
+            UserName = _queueConfig.Value.UserName,
+            Password = _queueConfig.Value.Password,
         };
         string queueName = "Payments";
         using var connection = _connectionFactory.CreateConnection();

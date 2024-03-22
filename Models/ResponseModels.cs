@@ -30,12 +30,3 @@ public class CreatePaymentResponseMessage
     public string WebHookDestiny { get; set; }
     public string WebHookOrigin { get; set; }
 }
-
-public class ConcilliationMessage
-{
-    public string File { get; set; }
-    public string Postback { get; set; }
-    public string Date { get; set; }
-
-    public DateOnly ParsedDate => DateOnly.Parse(Date);
-}

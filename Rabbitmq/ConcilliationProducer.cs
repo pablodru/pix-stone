@@ -8,7 +8,7 @@ namespace Pix.RabbitMQ;
 
 public class ConcilliationProducer
 {
-    public void PublishConcilliation(ConcilliationDTO dto)
+    public void PublishConcilliation(ConcilliationDTO dto, Bank validatedBank)
     {
         ConnectionFactory _connectionFactory = new()
         {
@@ -35,7 +35,7 @@ public class ConcilliationProducer
             { "retry-count", 0 }
         };
 
-        var message = new ConcilliationMessage { File = dto.File, Postback = dto.Postback, Date = dto.Date };
+        var message = new ConcilliationMessage { File = dto.File, Postback = dto.Postback, Date = dto.Date, BankId = validatedBank.Id };
         var jsonMessage = JsonSerializer.Serialize(message);
         var body = Encoding.UTF8.GetBytes(jsonMessage);
 

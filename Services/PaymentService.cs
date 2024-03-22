@@ -93,40 +93,10 @@ public class PaymentService(ValidationUtils validationUtils, AccountRepository a
         return updatedPayment;
     }
 
-    public void CreateConcilliation(ConcilliationDTO dto)
+    public void CreateConcilliation(ConcilliationDTO dto, Bank validatedBank)
     {
-        _concilliationProducer.PublishConcilliation(dto);
+        _concilliationProducer.PublishConcilliation(dto, validatedBank);
         return;
     }
 
-    public static void ReadFile(string filePath)
-    {
-        if (File.Exists(filePath))
-        {
-            using StreamReader fileReader = new(filePath);
-            string? line;
-            while ((line = fileReader.ReadLine()) != null)
-            {
-                Transaction? transaction = JsonSerializer.Deserialize<Transaction>(line);
-                if (transaction != null)
-                {
-                    Console.WriteLine($"Id:{transaction.Id}, Status:{transaction.Status}");
-                }
-                else
-                {
-                    Console.WriteLine("Erro ao deserializar a linha.");
-                }
-            }
-        }
-        else
-        {
-            Console.WriteLine("O arquivo não existe.");
-        }
-    }
-}
-
-public class Transaction
-{
-    public required int Id { get; set; }
-    public required string Status { get; set; }
 }

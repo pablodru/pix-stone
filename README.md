@@ -26,7 +26,7 @@ Para a construção do projeto foi utilizado as seguintes tecnologias:
 
 Para rodar o projeto localmente, siga os seguinter passos:
 
-1. Clone o repositório: `git clone https://github.com/pablodru/pix-stone`;
+1. Clone o repositório: `git clone https://github.com/pablodru/pix-stone.git`;
 2. Acesse o diretório do projeto: `cd pix-stone`;
 3. Construa e inicie os contâineres docker: `docker-compose up -d`:
 4. Depois disso, a aplicação estará disponível em: `http://localhost:8080`;

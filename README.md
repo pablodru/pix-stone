@@ -26,6 +26,7 @@ Para rodar o projeto localmente, siga os seguinter passos:
 2. Acesse o diretório do projeto: `cd pix-stone`;
 3. Construa e inicie os contâineres docker: `docker-compose up -d`:
 4. Depois disso, a aplicação estará disponível em: `http://localhost:8080`;
+
 Nota: Não existem rotas de criação de User e Bank, certifique da criação no banco de dados.
 
 ## Filas e Rabbitmq 🐇

@@ -123,4 +123,20 @@ public class AccountRepository
         }
         else return null;
     }
+
+    public async Task<Bank> GetAccountWithBankById(int Id)
+    {
+        var account = await _context.Accounts.Include(a => a.Bank).FirstOrDefaultAsync(a => a.Id == Id);
+        return account.Bank;
+    }
+}
+
+public class AccountWithAndBank
+{
+    public int Id { get; set; }
+    public required string Number { get; set; }
+    public required string Agency { get; set; }
+    public int BankId { get; set; }
+    public int UserId { get; set; }
+    public required Bank Bank { get; set; }
 }

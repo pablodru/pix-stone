@@ -3,8 +3,11 @@ import { sleep } from "k6";
 import { SharedArray } from "k6/data";
 
 export const options = {
-	vus: 30,
-	duration: "60s",
+    stages: [
+        { duration: "7s", target: 20 },
+        { duration: "20s", target: 40 },
+        { duration: "33s", target: 60 },
+    ],
 };
 
 export default function (){
@@ -12,23 +15,23 @@ export default function (){
     const paymentToCreate = {
         origin:{
             user:{
-                cpf: "42840822464"
+                cpf: "37269767345"
             },
             account: {
-                number: "626323358",
-                agency: "8817"
+                number: "811046258",
+                agency: "4763"
             }
         },
         destiny: {
             key: {
-                value: "35138917407",
+                value: "72217989468",
                 type: "Phone"
             }
         },
         amount: generateRandomNumber(1000, 100000)
     }
     const body = JSON.stringify(paymentToCreate);
-    const headers = { "Content-Type": "application/json", "Authorization": `Bearer 59252908-041b-4852-b740-f005e7dc4bb4` };
+    const headers = { "Content-Type": "application/json", "Authorization": `Bearer d175a658-153b-487f-bbbf-924301244235` };
 
     http.post(`http://localhost:5109/payments`, body, { headers });
 

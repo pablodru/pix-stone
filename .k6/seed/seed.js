@@ -8,11 +8,11 @@ const knex = require("knex")({
 	connection: process.env.DATABASE_URL,
 });
 
-const USERS = 1_000_000;
-const BANKS = 1_000_000;
-const ACCOUNTS = 1_000_000;
-const KEYS = 1_000_000;
-const PAYMENTS = 1_000_000;
+const USERS = 10;
+const BANKS = 10;
+const ACCOUNTS = 10;
+const KEYS = 10;
+const PAYMENTS = 10;
 const ERASE_DATA = true;
 
 async function run() {

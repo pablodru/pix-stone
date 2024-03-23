@@ -35,9 +35,14 @@ public class PaymentController(PaymentService paymentService, TokenService token
     }
 
     [HttpPost("/concilliation")]
-    public async Task CreateConcilliation(ConcilliationDTO dto)
+    public async Task<IActionResult> CreateConcilliation(ConcilliationDTO dto)
     {
-        await _paymentService.CreateConcilliation(dto);
+        string? authorizationHeader = this.HttpContext.Request.Headers["Authorization"];
+        Bank? validatedBank = await _tokenService.ValidateToken(authorizationHeader);
+
+        _paymentService.CreateConcilliation(dto, validatedBank);
+
+        return CreatedAtAction(null, null, null);
     }
 }
 

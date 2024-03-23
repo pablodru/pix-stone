@@ -12,13 +12,14 @@ using System.Text.Json;
 
 namespace Pix.Services;
 
-public class PaymentService(ValidationUtils validationUtils, AccountRepository accountRepository, KeysRepository keyRepository, PaymentRepository paymentRepository, PaymentProducer paymentProducer)
+public class PaymentService(ValidationUtils validationUtils, AccountRepository accountRepository, KeysRepository keyRepository, PaymentRepository paymentRepository, PaymentProducer paymentProducer, ConcilliationProducer concilliationProducer)
 {
     private readonly ValidationUtils _validationUtils = validationUtils;
     private readonly AccountRepository _accountRepository = accountRepository;
     private readonly KeysRepository _keyRepository = keyRepository;
     private readonly PaymentRepository _paymentRepository = paymentRepository;
     private readonly PaymentProducer _paymentProducer = paymentProducer;
+    private readonly ConcilliationProducer _concilliationProducer = concilliationProducer;
 
     private readonly int IDEMPOTENCY_SECONDS_TOLERANCE = 30;
 
@@ -92,53 +93,10 @@ public class PaymentService(ValidationUtils validationUtils, AccountRepository a
         return updatedPayment;
     }
 
-    public async Task CreateConcilliation(ConcilliationDTO dto)
+    public void CreateConcilliation(ConcilliationDTO dto, Bank validatedBank)
     {
-        GenerateFile(dto.File, 100);
-        ReadFile(dto.File);
+        _concilliationProducer.PublishConcilliation(dto, validatedBank);
+        return;
     }
 
-    public static void ReadFile(string filePath)
-    {
-        if (File.Exists(filePath))
-        {
-            using StreamReader fileReader = new(filePath);
-            string? line;
-            while ((line = fileReader.ReadLine()) != null)
-            {
-                Transaction? transaction = JsonSerializer.Deserialize<Transaction>(line);
-                if (transaction != null)
-                {
-                    Console.WriteLine($"Id:{transaction.Id}, Status:{transaction.Status}");
-                }
-                else
-                {
-                    Console.WriteLine("Erro ao deserializar a linha.");
-                }
-            }
-        }
-        else
-        {
-            Console.WriteLine("O arquivo não existe.");
-        }
-    }
-
-    public static void GenerateFile(string filePath, int quantity)
-    {
-        Random random = new();
-        using StreamWriter file = File.CreateText(filePath);
-        for (int i = 1; i <= quantity; i++)
-        {
-            int value = random.Next(1, 1000);
-            Transaction transaction = new() { Id = i, Status = "SUCCESS" };
-            string json = JsonSerializer.Serialize(transaction);
-            file.WriteLine(json);
-        }
-    }
-}
-
-public class Transaction
-{
-    public required int Id { get; set; }
-    public required string Status { get; set; }
 }

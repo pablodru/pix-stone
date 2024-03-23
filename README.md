@@ -18,6 +18,10 @@ Para a construção do projeto foi utilizado as seguintes tecnologias:
 - Grafana K6
 - Knex
 
+## Entidades do Banco de Dados 🗄️
+
+![Diagrama do Banco de Dados](./Data/Database.png)
+
 ## Instalação e Execução 🚀
 
 Para rodar o projeto localmente, siga os seguinter passos:

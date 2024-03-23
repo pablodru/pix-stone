@@ -97,46 +97,10 @@ public class AccountRepository
         }
     }
 
-    public async Task<AccountWithUserAndBank?> GetAccountWithUserAndBank(string number, string agency, int bankId)
+    public async Task<Account?> GetAccountByIndex(string number, string agency, int bankId)
     {
-        var account = await _context.Accounts
-            .Include(a => a.User)
-            .Include(a => a.Bank)
-            .FirstOrDefaultAsync(a =>
-            a.Number == number &&
+        return await _context.Accounts.FirstOrDefaultAsync(a => a.Number == number &&
             a.Agency == agency &&
             a.BankId == bankId);
-        if (account != null)
-        {
-            var accountWithUserAndBank = new AccountWithUserAndBank
-            {
-                Id = account.Id,
-                Number = account.Number,
-                Agency = account.Agency,
-                BankId = account.BankId,
-                UserId = account.UserId,
-                User = account.User,
-                Bank = account.Bank
-            };
-
-            return accountWithUserAndBank;
-        }
-        else return null;
     }
-
-    public async Task<Bank> GetAccountWithBankById(int Id)
-    {
-        var account = await _context.Accounts.Include(a => a.Bank).FirstOrDefaultAsync(a => a.Id == Id);
-        return account.Bank;
-    }
-}
-
-public class AccountWithAndBank
-{
-    public int Id { get; set; }
-    public required string Number { get; set; }
-    public required string Agency { get; set; }
-    public int BankId { get; set; }
-    public int UserId { get; set; }
-    public required Bank Bank { get; set; }
 }

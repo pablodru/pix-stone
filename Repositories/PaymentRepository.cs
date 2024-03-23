@@ -29,8 +29,15 @@ public class PaymentRepository(AppDBContext context)
         };
         _context.Payments.Add(newPayment);
         await _context.SaveChangesAsync();
-        
+
         return newPayment;
+    }
+
+    public async Task<Payment> PaymentFail(Payment payment)
+    {
+        payment.Status = "FAILED";
+        await _context.SaveChangesAsync();
+        return payment;
     }
 
     public async Task<Payment?> GetPaymentById(int id)

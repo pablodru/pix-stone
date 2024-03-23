@@ -7,9 +7,10 @@ using Pix.RabbitMQ;
 
 namespace Pix.Services;
 
-public class PaymentService(ValidationUtils validationUtils, AccountRepository accountRepository, KeysRepository keyRepository, PaymentRepository paymentRepository, PaymentProducer paymentProducer, ConcilliationProducer concilliationProducer)
+public class PaymentService(ValidationUtils validationUtils, UserRepository userRepository, AccountRepository accountRepository, KeysRepository keyRepository, PaymentRepository paymentRepository, PaymentProducer paymentProducer, ConcilliationProducer concilliationProducer)
 {
     private readonly ValidationUtils _validationUtils = validationUtils;
+    private readonly UserRepository _userRepository = userRepository;
     private readonly AccountRepository _accountRepository = accountRepository;
     private readonly KeysRepository _keyRepository = keyRepository;
     private readonly PaymentRepository _paymentRepository = paymentRepository;
@@ -18,68 +19,48 @@ public class PaymentService(ValidationUtils validationUtils, AccountRepository a
 
     private readonly int IDEMPOTENCY_SECONDS_TOLERANCE = 30;
 
-    // public async Task<CreatePaymentResponse> CreatePayment(CreatePaymentDTO dto, Bank? bank)
-    // {
-    //     _validationUtils.ValidateKeyType(dto.Destiny.Key.Type, dto.Destiny.Key.Value);
-
-    //     AccountWithUserAndBank? originAccount = await _accountRepository.GetAccountWithUserAndBank(dto.Origin.Account.Number, dto.Origin.Account.Agency, bank.Id);
-    //     ValidateOriginAccount(originAccount, dto);
-
-    //     KeyWithAccountAndBank? destinyKey = await _keyRepository.GetKeyByValueWithAccount(dto.Destiny.Key.Value, dto.Destiny.Key.Type);
-    //     ValidateDestinyKey(destinyKey, originAccount);
-
-    //     var indempotenceKey = new PaymentIndempotenceKey(destinyKey.Id, originAccount.Id, dto.Amount);
-    //     await CheckIfDuplicatedByIdempotence(indempotenceKey);
-
-    //     Payment payment = await _paymentRepository.CreatePayment(dto.ToEntity(), destinyKey.Id, originAccount.Id);
-    //     var messageResponse = new CreatePaymentResponseMessage
-    //     {
-    //         Id = payment.Id,
-    //         WebHookDestiny = destinyKey.Bank.WebHook,
-    //         WebHookOrigin = originAccount.Bank.WebHook
-    //     };
-    //     _paymentProducer.PublishPayment(dto, messageResponse);
-
-    //     return new CreatePaymentResponse { Id = payment.Id };
-    // }
-
-    public async Task<CreatePaymentResponse> CreatePayment(CreatePaymentDTO dto, Bank? bank)
+    public async Task<CreatePaymentResponse> CreatePayment(CreatePaymentDTO dto, Bank bank)
     {
         _validationUtils.ValidateKeyType(dto.Destiny.Key.Type, dto.Destiny.Key.Value);
 
-        AccountWithUserAndBank? originAccount = await _accountRepository.GetAccountWithUserAndBank(dto.Origin.Account.Number, dto.Origin.Account.Agency, bank.Id);
-        ValidateOriginAccount(originAccount, dto);
-
+        User user = await _userRepository.GetUserByCPF(dto.Origin.User.Cpf) ?? throw new NotFoundException("User's CPF not found.");
+        Account? originAccount = await _accountRepository.GetAccountByIndex(dto.Origin.Account.Number, dto.Origin.Account.Agency, bank.Id);
+        ValidateOriginAccount(originAccount, user);
+        
         Key? destinyKey = await _keyRepository.GetKeyByValue(dto.Destiny.Key.Value, dto.Destiny.Key.Type);
         ValidateDestinyKey(destinyKey, originAccount);
-
+        
         var indempotenceKey = new PaymentIndempotenceKey(destinyKey.Id, originAccount.Id, dto.Amount);
         await CheckIfDuplicatedByIdempotence(indempotenceKey);
 
-        Bank destinyBank = await _accountRepository.GetAccountWithBankById(destinyKey.AccountId);
         Payment payment = await _paymentRepository.CreatePayment(dto.ToEntity(), destinyKey.Id, originAccount.Id);
-        var messageResponse = new CreatePaymentResponseMessage
+        var response = new CreatePaymentResponse
         {
-            Id = payment.Id,
-            WebHookDestiny = destinyBank.WebHook,
-            WebHookOrigin = originAccount.Bank.WebHook
+            Id = payment.Id
         };
-        _paymentProducer.PublishPayment(dto, messageResponse);
+        try
+        {
+            _paymentProducer.PublishPayment(dto, payment.Id);
+        } catch
+        {
+            await _paymentRepository.PaymentFail(payment);
+            throw new RabbitMqException("Internal Server Error. Payment failed.");
+        }
 
-        return new CreatePaymentResponse{Id = payment.Id};
+        return response;
     }
 
-    public void ValidateOriginAccount(AccountWithUserAndBank? originAccount, CreatePaymentDTO dto)
+    public void ValidateOriginAccount(Account? originAccount, User user)
     {
         if (originAccount == null) throw new NotFoundException("The origin account was not found.");
 
-        if (originAccount.User.CPF != dto.Origin.User.Cpf)
+        if (originAccount.UserId != user.Id)
         {
             throw new AccountBadRequestException("The origin account does not match with user CPF.");
         }
     }
 
-    public void ValidateDestinyKey(Key? destinyKey, AccountWithUserAndBank originAccount)
+    public void ValidateDestinyKey(Key? destinyKey, Account? originAccount)
     {
         if (destinyKey == null) throw new NotFoundException("The key destiny does not match with any key.");
 

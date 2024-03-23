@@ -1,12 +1,10 @@
 import http from "k6/http";
-import { sleep } from "k6";
-import { SharedArray } from "k6/data";
 
 export const options = {
     stages: [
-        { duration: "7s", target: 20 },
-        { duration: "20s", target: 40 },
-        { duration: "33s", target: 60 },
+        { duration: "30s", target: 10 },
+        { duration: "20s", target: 15 },
+        { duration: "10s", target: 20 },
     ],
 };
 
@@ -15,27 +13,25 @@ export default function (){
     const paymentToCreate = {
         origin:{
             user:{
-                cpf: "37269767345"
+                cpf: "28593648602"
             },
             account: {
-                number: "811046258",
-                agency: "4763"
+                number: "189983764",
+                agency: "4857"
             }
         },
         destiny: {
             key: {
-                value: "72217989468",
+                value: "46000287469",
                 type: "Phone"
             }
         },
         amount: generateRandomNumber(1000, 100000)
     }
     const body = JSON.stringify(paymentToCreate);
-    const headers = { "Content-Type": "application/json", "Authorization": `Bearer d175a658-153b-487f-bbbf-924301244235` };
+    const headers = { "Content-Type": "application/json", "Authorization": `Bearer f04dee77-8805-4311-ae5d-367d03cf083b` };
 
-    http.post(`http://localhost:5109/payments`, body, { headers });
-
-    sleep(1);
+    http.post(`http://localhost:8080/payments`, body, { headers });
 }
 
 function generateRandomNumber(min, max) {

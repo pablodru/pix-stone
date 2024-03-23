@@ -3,8 +3,11 @@ import { sleep } from "k6";
 import { SharedArray } from "k6/data";
 
 export const options = {
-	vus: 30,
-	duration: "60s",
+	stages: [
+        { duration: "30s", target: 10 },
+        { duration: "20s", target: 15 },
+        { duration: "10s", target: 20 },
+    ],
 };
 
 const usersData = new SharedArray("users", function () {
@@ -36,7 +39,7 @@ export default function () {
 	const body = JSON.stringify(keyToCreate);
 	const headers = { "Content-Type": "application/json", "Authorization": `Bearer ${randomBank.Token}` };
 
-	http.post(`http://localhost:5109/keys`, body, { headers });
+	http.post(`http://localhost:8080/keys`, body, { headers });
 
 	//sleep(1);
 }

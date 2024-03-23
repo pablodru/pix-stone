@@ -13,8 +13,11 @@ const banksData = new SharedArray("banks", function () {
 });
 
 export const options = {
-	vus: 30,
-	duration: "60s",
+	stages: [
+        { duration: "30s", target: 10 },
+        { duration: "20s", target: 15 },
+        { duration: "10s", target: 20 },
+    ],
 };
 
 export default function () {
@@ -26,6 +29,6 @@ export default function () {
         "Authorization": `Bearer ${randomBank.Token}` 
     };
 
-    const response = http.get(`http://localhost:5109/keys/${randomKey.Type}/${randomKey.Value}`, { headers });
+    const response = http.get(`http://localhost:8080/keys/${randomKey.Type}/${randomKey.Value}`, { headers });
 
 }

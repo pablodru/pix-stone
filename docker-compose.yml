@@ -65,8 +65,8 @@ services:
     image: dpage/pgadmin4
     container_name: pgadmin
     environment:
-      - PGADMIN_DEFAULT_EMAIL=pdrocha03@gmail.com
-      - PGADMIN_DEFAULT_PASSWORD=151099
+      - PGADMIN_DEFAULT_EMAIL=admin@gmail.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
     ports:
       - "16543:80"
     depends_on:

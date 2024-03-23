@@ -12,7 +12,7 @@ public class PaymentProducer(IOptions<QueueConfig> queueConfig)
 {
     IOptions<QueueConfig> _queueConfig = queueConfig;
     
-    public void PublishPayment(CreatePaymentDTO dto, CreatePaymentResponseMessage response)
+    public void PublishPayment(CreatePaymentDTO dto, int paymentId)
     {
         ConnectionFactory _connectionFactory = new()
         {
@@ -32,7 +32,7 @@ public class PaymentProducer(IOptions<QueueConfig> queueConfig)
             arguments: null
         );
 
-        var message = new PaymentMessage { DTO = dto, Response = response };
+        var message = new PaymentMessage { DTO = dto, PaymentId = paymentId };
         var jsonMessage = message.SerializeToJson();
         var body = Encoding.UTF8.GetBytes(jsonMessage);
 

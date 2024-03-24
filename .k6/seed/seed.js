@@ -129,11 +129,11 @@ function generatePayments(accounts, keys) {
 	console.log(`Generating ${PAYMENTS} payments...`);
 	const payments = [];
 	const statusOptions = ["FAILED", "SUCCESS"];
+	const randomAccount = accounts[Math.floor(Math.random() * accounts.length)];
+	const randomKey = keys[Math.floor(Math.random() * keys.length)];
+	const randomStatusIndex = Math.floor(Math.random() * statusOptions.length);
+	const randomStatus = statusOptions[randomStatusIndex];
 	for (let i = 0; i < PAYMENTS; i++) {
-		const randomAccount = accounts[Math.floor(Math.random() * accounts.length)];
-		const randomKey = keys[Math.floor(Math.random() * keys.length)];
-		const randomStatusIndex = Math.floor(Math.random() * statusOptions.length);
-		const randomStatus = statusOptions[randomStatusIndex];
 		payments.push({
 			Status: randomStatus,
 			Amount: faker.fakerPT_BR.number.int({ max: 15000 }).toString(),

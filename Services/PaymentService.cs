@@ -90,10 +90,4 @@ public class PaymentService(ValidationUtils validationUtils, UserRepository user
         return updatedPayment;
     }
 
-    public void CreateConcilliation(ConcilliationDTO dto, Bank validatedBank)
-    {
-        _concilliationProducer.PublishConcilliation(dto, validatedBank);
-        return;
-    }
-
 }

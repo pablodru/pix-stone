@@ -40,6 +40,7 @@ builder.Services.AddScoped<HealthService>();
 builder.Services.AddScoped<KeyService>();
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<PaymentService>();
+builder.Services.AddScoped<ConcilliationService>();
 builder.Services.AddScoped<PaymentRepository>();
 builder.Services.AddScoped<KeysRepository>();
 builder.Services.AddScoped<UserRepository>();

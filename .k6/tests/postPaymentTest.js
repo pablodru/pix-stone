@@ -13,23 +13,23 @@ export default function (){
     const paymentToCreate = {
         origin:{
             user:{
-                cpf: "14210557925"
+                cpf: "69168962428"
             },
             account: {
-                number: "521352960",
-                agency: "7251"
+                number: "824634948",
+                agency: "1793"
             }
         },
         destiny: {
             key: {
-                value: "49004118344",
+                value: "30990248520",
                 type: "Phone"
             }
         },
         amount: generateRandomNumber(1000, 100000)
     }
     const body = JSON.stringify(paymentToCreate);
-    const headers = { "Content-Type": "application/json", "Authorization": `Bearer 0acfb721-29e4-46a2-99ff-8c910db85de8` };
+    const headers = { "Content-Type": "application/json", "Authorization": `Bearer f46ff6b5-6d49-4392-9968-4c9eeba8b6ba` };
 
     http.post(`http://localhost:8080/payments`, body, { headers });
 }

@@ -64,14 +64,22 @@ namespace Pix.Data
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.CPF)
                 .HasDatabaseName("IX_User_CPF");
-            
+
             modelBuilder.Entity<Bank>()
                 .HasIndex(b => b.Token)
                 .HasDatabaseName("IX_Bank_Token");
 
             modelBuilder.Entity<Key>()
-                .HasIndex(k => new { k.Type, k.Value})
+                .HasIndex(k => new { k.Type, k.Value })
                 .HasDatabaseName("IX_Key_Type_Value");
+
+            modelBuilder.Entity<Account>()
+            .HasIndex(a => new { a.Number, a.Agency, a.BankId })
+            .HasDatabaseName("IX_Account_Existency");
+
+            modelBuilder.Entity<Payment>()
+            .HasIndex(p => new { p.KeyId, p.AccountId, p.Amount })
+            .HasDatabaseName("IX_Payemnt_Idempotence");
 
             base.OnModelCreating(modelBuilder);
         }

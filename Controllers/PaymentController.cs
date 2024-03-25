@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using Pix.DTOs;
-using Pix.Exceptions;
-using Pix.Middlewares;
 using Pix.Models;
 using Pix.Services;
 
@@ -20,7 +18,7 @@ public class PaymentController(PaymentService paymentService, TokenService token
     {
         string? authorizationHeader = this.HttpContext.Request.Headers["Authorization"];
         Bank? validatedBank = await _tokenService.ValidateToken(authorizationHeader);
-        
+
         CreatePaymentResponse response = await _paymentService.CreatePayment(dto, validatedBank);
 
         return CreatedAtAction(null, null, response);
@@ -28,10 +26,11 @@ public class PaymentController(PaymentService paymentService, TokenService token
 
     [HttpPut("/payments/update")]
     public async Task<IActionResult> UpdatePayment(UpdatePaymentDTO dto)
-    {        
+    {
+        string? authorizationHeader = this.HttpContext.Request.Headers["Authorization"];
+        TokenService.ValidateIntern(authorizationHeader);
         var response = await _paymentService.UpdatePayment(dto);
 
         return CreatedAtAction(null, null, response);
     }
 }
-

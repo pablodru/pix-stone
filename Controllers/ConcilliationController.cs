@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using Pix.DTOs;
-using Pix.Middlewares;
 using Pix.Models;
 using Pix.Services;
 
